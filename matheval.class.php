@@ -1,4 +1,4 @@
-<?
+<?php
 
 /*
 ================================================================================
@@ -12,6 +12,7 @@ NAME
     EvalMath - safely evaluate math expressions
     
 SYNOPSIS
+    <?
       include('evalmath.class.php');
       $m = new EvalMath;
       // basic evaluation:
@@ -24,6 +25,7 @@ SYNOPSIS
       $m->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
       // and then use them
       $result = $m->evaluate('3*f(42,a)');
+    ?>
       
 DESCRIPTION
     Use the EvalMath class when you want to evaluate mathematical expressions 
