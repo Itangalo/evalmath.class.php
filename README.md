@@ -1,11 +1,16 @@
 evalmath.class.php
 ==================
 
-Version 1.0
+Version 1.1
 
-Taken from http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
+evalmath is an excellent class for evaluating mathematical expressions in PHP by Miles Kaufmann.
 
-This repository is cloned for two reasons:
 
-1. To allow downloading the code without signing in to phpclasses.org.
-2. To add very small improvements to the code.
+Forked from Itangalo/evalmath.class.php
+
+This repository is forked for:
+
+1. To add some improvements to the code that we made while using the same and making it available to the community.
+2. Extend its functionality to logical operations. 
+
+
