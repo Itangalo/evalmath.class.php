@@ -190,7 +190,6 @@ class EvalMath {
         while(1) { // 1 Infinite Loop ;)
             $op = substr($expr, $index, 2); // get the first two characters at the current index
             if (preg_match("/^[+\-*\/^_<>=()!](?!=)/", $op) || preg_match("/\w/", $op)) {
-                echo "$op match\n";
                 // fix $op if it should have one character
                 $op = substr($expr, $index, 1);
             }
