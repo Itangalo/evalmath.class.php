@@ -174,19 +174,25 @@ class EvalMath {
         $output = array(); // postfix form of expression, to be passed to pfx()
         $expr = trim(strtolower($expr));
         
-        $ops   = array('+', '-', '*', '/', '^', '_');
-        $ops_r = array('+'=>0,'-'=>0,'*'=>0,'/'=>0,'^'=>1); // right-associative operator?  
-        $ops_p = array('+'=>0,'-'=>0,'*'=>1,'/'=>1,'_'=>1,'^'=>2); // operator precedence
+        $ops   = array('+', '-', '*', '/', '^', '_', '>', '<', '>=', '<=', '==', '&&', '||', '!');
+        $ops_r = array('+'=>0,'-'=>0,'*'=>0,'/'=>0,'^'=>1,'>'=>0,
+                       '<'=>0,'>='=>0,'<='=>0,'=='=>0,'&&'=>0,'||'=>0,'!'=>0); // right-associative operator?  
+        $ops_p = array('+'=>4,'-'=>4,'*'=>4,'/'=>4,'_'=>4,'^'=>5,'>'=>2,
+                       '<'=>2,'>='=>2,'<='=>2,'=='=>2,'&&'=>1,'||'=>1, '!'=>0); // operator precedence
         
         $expecting_op = false; // we use this in syntax-checking the expression
                                // and determining when a - is a negation
     
-        if (preg_match("/[^\w\s+*^\/()\.,-]/", $expr, $matches)) { // make sure the characters are all good
+        if (preg_match("/[^\w\s+*^\/()\.,-<>=&|]/", $expr, $matches)) { // make sure the characters are all good
             return $this->trigger("illegal character '{$matches[0]}'");
         }
     
         while(1) { // 1 Infinite Loop ;)
-            $op = substr($expr, $index, 1); // get the first character at the current index
+            $op = substr($expr, $index, 2); // get the first two characters at the current index
+            if (preg_match("/^[+\-*\/^_<>=()](?!=)/", $op) || preg_match("/\w/", $op)) {
+                // fix $op if it should have one character
+                $op = substr($expr, $index, 1);
+            }
             // find out if we're currently at the beginning of a number/variable/function/parenthesis/operand
             $ex = preg_match('/^([a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\()/', substr($expr, $index), $match);
             //===============
@@ -207,6 +213,9 @@ class EvalMath {
                 // many thanks: http://en.wikipedia.org/wiki/Reverse_Polish_notation#The_algorithm_in_detail
                 $stack->push($op); // finally put OUR operator onto the stack
                 $index++;
+                if (strlen($op) == 2) {
+                    $index++;
+                }
                 $expecting_op = false;
             //===============
             } elseif ($op == ')' and $expecting_op) { // ready to close a parenthesis?
@@ -271,6 +280,7 @@ class EvalMath {
             } elseif (in_array($op, $ops) and !$expecting_op) {
                 return $this->trigger("unexpected operator '$op'");
             } else { // I don't even want to know what you did to get here
+                echo "$op\n";
                 return $this->trigger("an unexpected error occured");
             }
             if ($index == strlen($expr)) {
@@ -301,7 +311,7 @@ class EvalMath {
         
         foreach ($tokens as $token) { // nice and easy
             // if the token is a binary operator, pop two values off the stack, do the operation, and push the result back on
-            if (in_array($token, array('+', '-', '*', '/', '^'))) {
+            if (in_array($token, array('+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||'))) {
                 if (is_null($op2 = $stack->pop())) return $this->trigger("internal error");
                 if (is_null($op1 = $stack->pop())) return $this->trigger("internal error");
                 switch ($token) {
@@ -316,8 +326,24 @@ class EvalMath {
                         $stack->push($op1/$op2); break;
                     case '^':
                         $stack->push(pow($op1, $op2)); break;
+                    case '>':
+                        $stack->push($op1 > $op2); break;
+                    case '<':
+                        $stack->push($op1 < $op2); break;
+                    case '>=':
+                        $stack->push($op1 >= $op2); break;
+                    case '<=':
+                        $stack->push($op1 <= $op2); break;
+                    case '==':
+                        $stack->push($op1 == $op2); break;
+                    case '&&':
+                        $stack->push($op1 && $op2); break;
+                    case '||':
+                        $stack->push($op1 || $op2); break;
                 }
             // if the token is a unary operator, pop one value off the stack, do the operation, and push it back on
+            } elseif ($token == '!') {
+                $stack->push(!$stack->pop());
             } elseif ($token == "_") {
                 $stack->push(-1*$stack->pop());
             // if the token is a function, pop arguments off the stack, hand them to the function, and push the result back on
