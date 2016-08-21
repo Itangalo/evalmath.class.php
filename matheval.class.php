@@ -177,8 +177,8 @@ class EvalMath {
         $ops   = array('+', '-', '*', '/', '^', '_', '>', '<', '>=', '<=', '==', '!=', '&&', '||', '!');
         $ops_r = array('+'=>0,'-'=>0,'*'=>0,'/'=>0,'^'=>1,'>'=>0,
                        '<'=>0,'>='=>0,'<='=>0,'=='=>0,'!='=>0,'&&'=>0,'||'=>0,'!'=>0); // right-associative operator?  
-        $ops_p = array('+'=>4,'-'=>4,'*'=>4,'/'=>4,'_'=>4,'^'=>5,'>'=>2,
-                       '<'=>2,'>='=>2,'<='=>2,'=='=>2,'!='=>2,'&&'=>1,'||'=>1, '!'=>0); // operator precedence
+        $ops_p = array('+'=>4,'-'=>4,'*'=>4,'/'=>4,'_'=>4,'^'=>5,'>'=>2,'<'=>2,
+                       '>='=>2,'<='=>2,'=='=>2,'!='=>2,'&&'=>1,'||'=>1,'!'=>0); // operator precedence
         
         $expecting_op = false; // we use this in syntax-checking the expression
                                // and determining when a - is a negation
@@ -190,13 +190,17 @@ class EvalMath {
         while(1) { // 1 Infinite Loop ;)
             $op = substr($expr, $index, 2); // get the first two characters at the current index
             if (preg_match("/^[+\-*\/^_<>=()!](?!=)/", $op) || preg_match("/\w/", $op)) {
+                echo "$op match\n";
                 // fix $op if it should have one character
                 $op = substr($expr, $index, 1);
             }
             // find out if we're currently at the beginning of a number/variable/function/parenthesis/operand
             $ex = preg_match('/^([a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\()/', substr($expr, $index), $match);
             //===============
-            if ($op == '-' and !$expecting_op) { // is it a negation instead of a minus?
+            if ($op == '!' && !$expecting_op) {
+                $stack->push('!'); // put a negation on the stack
+                $index++;
+            } elseif ($op == '-' and !$expecting_op) { // is it a negation instead of a minus?
                 $stack->push('_'); // put a negation on the stack
                 $index++;
             } elseif ($op == '_') { // we have to explicitly deny this, because it's legal on the stack 
