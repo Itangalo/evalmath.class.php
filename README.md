@@ -1,9 +1,9 @@
-evalmath.class.php
+expression.php
 ==================
 
 Version 1.0
 
-Taken from http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
+Based on http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
 
 This repository is cloned for two reasons:
 

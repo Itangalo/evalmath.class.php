@@ -3,13 +3,14 @@
 /*
 ================================================================================
 
-EvalMath - PHP Class to safely evaluate math expressions
+Expression - PHP Class to safely evaluate math expressions
 Copyright (C) 2005 Miles Kaufmann <http://www.twmagic.com/>
+Copyright (C) 2016 Jakub Jankiewicz <http://jcubic.pl/>
 
 ================================================================================
 
 NAME
-    EvalMath - safely evaluate math expressions
+    Expression - safely evaluate math expressions
     
 SYNOPSIS
     <?
@@ -86,7 +87,7 @@ LICENSE
 
 */
 
-class EvalMath {
+class Expression {
 
     var $suppress_errors = false;
     var $last_error = null;
@@ -100,7 +101,7 @@ class EvalMath {
         'tan','tanh','arctan','atan','arctanh','atanh',
         'sqrt','abs','ln','log');
     
-    function EvalMath() {
+    function __construct() {
         // make the variables a little more accurate
         $this->v['pi'] = pi();
         $this->v['e'] = exp(1);
