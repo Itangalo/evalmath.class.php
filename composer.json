@@ -2,6 +2,7 @@
   "name": "optimistex/yii2-expression",
   "description": "Taken from http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann",
   "type": "yii2-extension",
+  "version": "1.1",
   "license": "MIT",
   "authors": [
     {
