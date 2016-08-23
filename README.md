@@ -3,7 +3,7 @@
 
 Вычисление математических выражений от **Miles Kaufmann**
 
-# Установка:
+# Установка
 
 ```
     $ php composer.phar require optimistex/yii2-expression
