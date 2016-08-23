@@ -2,7 +2,7 @@
   "name": "itangalo/evalmath",
   "description": "Taken from http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann",
   "type": "library",
-  "version": "1.0",
+  "version": "1.0.1",
   "license": "MIT",
   "authors": [
     {
