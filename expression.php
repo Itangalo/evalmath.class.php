@@ -417,7 +417,9 @@ class Expression
     }
 }
 
-// for internal use
+/**
+ * Class EvalMathStack for internal use
+ */
 class EvalMathStack
 {
 

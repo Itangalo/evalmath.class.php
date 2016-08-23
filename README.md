@@ -12,4 +12,6 @@ This repository is cloned for two reasons:
 
 # Install
 
-    $ php composer.phar require itangalo/evalmath
+```
+    $ php composer.phar require optimistex/expression
+```
