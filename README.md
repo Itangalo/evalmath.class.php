@@ -13,5 +13,5 @@ This repository is cloned for two reasons:
 # Install
 
 ```
-    $ php composer.phar require optimistex/expression
+    $ php composer.phar require optimistex/yii2-expression
 ```

@@ -3,14 +3,14 @@
 /*
 ================================================================================
 
-Expression - PHP Class to safely evaluate math expressions
+EvalMath - PHP Class to safely evaluate math expressions
 Copyright (C) 2005 Miles Kaufmann <http://www.twmagic.com/>
 Copyright (C) 2016 Jakub Jankiewicz <http://jcubic.pl/>
 
 ================================================================================
 
 NAME
-    Expression - safely evaluate math expressions
+    EvalMath - safely evaluate math expressions
     
 SYNOPSIS
     <?
@@ -87,7 +87,7 @@ LICENSE
 
 */
 
-class Expression
+class EvalMath
 {
 
     var $suppress_errors = false;
