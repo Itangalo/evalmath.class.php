@@ -15,6 +15,5 @@
       "matheval.class.php"
     ]
   },
-  "minimum-stability": "stable",
   "require": {}
 }
