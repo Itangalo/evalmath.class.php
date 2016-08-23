@@ -1,0 +1,20 @@
+{
+  "name": "itangalo/evalmath",
+  "description": "Taken from http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann",
+  "type": "library",
+  "version": "1.0",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "optimistex",
+      "email": "optimistex@gmail.com"
+    }
+  ],
+  "autoload": {
+    "classmap": [
+      "matheval.class.php"
+    ]
+  },
+  "minimum-stability": "stable",
+  "require": {}
+}
