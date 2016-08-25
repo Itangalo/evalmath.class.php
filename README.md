@@ -1,4 +1,4 @@
-# yii2-expression
+yii2-expression
 ==================
 
 Вычисление математических выражений от **Miles Kaufmann**
