@@ -175,12 +175,12 @@ class Expression {
         $output = array(); // postfix form of expression, to be passed to pfx()
         $expr = trim(strtolower($expr));
         
-        $ops   = array('+', '-', '*', '/', '^', '_', '>', '<', '>=', '<=', '==', '!=', '=~', '!~', '&&', '||', '!');
+        $ops   = array('+', '-', '*', '/', '^', '_', '>', '<', '>=', '<=', '==', '!=', '=~', '&&', '||', '!');
         $ops_r = array('+'=>0,'-'=>0,'*'=>0,'/'=>0,'^'=>1,'>'=>0,
-                       '<'=>0,'>='=>0,'<='=>0,'=='=>0,'!='=>0,'=~'=>0,'!~'=>0,
+                       '<'=>0,'>='=>0,'<='=>0,'=='=>0,'!='=>0,'=~'=>0,
                        '&&'=>0,'||'=>0,'!'=>0); // right-associative operator?  
         $ops_p = array('+'=>4,'-'=>4,'*'=>4,'/'=>4,'_'=>4,'^'=>5,'>'=>2,'<'=>2,
-                       '>='=>2,'<='=>2,'=='=>2,'!='=>2,'=~'=>2,'!~'=>2,'&&'=>1,'||'=>1,'!'=>0); // operator precedence
+                       '>='=>2,'<='=>2,'=='=>2,'!='=>2,'=~'=>2,'&&'=>1,'||'=>1,'!'=>0); // operator precedence
         
         $expecting_op = false; // we use this in syntax-checking the expression
                                // and determining when a - is a negation
@@ -315,9 +315,11 @@ class Expression {
         if ($tokens == false) return false;
     
         $stack = new ExpressionStack();
+        print_r($tokens);
         foreach ($tokens as $token) { // nice and easy
+            print_r($stack->stack);
             // if the token is a binary operator, pop two values off the stack, do the operation, and push the result back on
-            if (in_array($token, array('+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||', '!=', '=~', '!~'))) {
+            if (in_array($token, array('+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||', '!=', '=~'))) {
                 if (is_null($op2 = $stack->pop())) return $this->trigger("internal error");
                 if (is_null($op1 = $stack->pop())) return $this->trigger("internal error");
                 switch ($token) {
@@ -347,12 +349,7 @@ class Expression {
                     case '&&':
                         $stack->push($op1 && $op2); break;
                     case '=~':
-                    case '!~':
-                        if ($token == '=~') {
-                            $stack->push(preg_match($op2, $op1, $match));
-                        } else {
-                            $stack->push(!preg_match($op2, $op1, $match));
-                        }
+                        $stack->push(preg_match($op2, $op1, $match));
                         for ($i = 0; $i < count($match); $i++) {
                             $this->v['$' . $i] = $match[$i];
                         }
@@ -383,11 +380,13 @@ class Expression {
                 }
             // if the token is a number or variable, push it on the stack
             } else {
+                echo "xxx: " . $token . "\n";
                 if (is_numeric($token)) {
                     $stack->push($token);
                 } else if (preg_match('/^"(?:[^"]|(?<=\\\\)")*"$/', $token)) {
                     $stack->push(json_decode($token));
                 } elseif (array_key_exists($token, $this->v)) {
+                    echo "yyyy: " . $this->v[$token] . "\n";
                     $stack->push($this->v[$token]);
                 } elseif (array_key_exists($token, $vars)) {
                     $stack->push($vars[$token]);
