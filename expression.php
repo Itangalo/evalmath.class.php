@@ -184,11 +184,13 @@ class Expression {
         
         $expecting_op = false; // we use this in syntax-checking the expression
                                // and determining when a - is a negation
-    
+
+        /* we allow all characters because of strings
         if (preg_match("%[^\w\s+*^\/()\.,-<>=&~|!\"\\\\/]%", $expr, $matches)) { // make sure the characters are all good
-        //    return $this->trigger("illegal character '{$matches[0]}'");
+            return $this->trigger("illegal character '{$matches[0]}'");
         }
-    
+        */
+
         while(1) { // 1 Infinite Loop ;)
             $op = substr($expr, $index, 2); // get the first two characters at the current index
             if (preg_match("/^[+\-*\/^_\"<>=()!~](?!=|~)/", $op) || preg_match("/\w/", $op)) {
@@ -196,7 +198,7 @@ class Expression {
                 $op = substr($expr, $index, 1);
             }
             // find out if we're currently at the beginning of a number/variable/function/parenthesis/operand
-            $ex = preg_match('/^("(?:[^"]|(?<=\\\\)")*"|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
+            $ex = preg_match('/^("(?:[^"]|(?<=\\\\)")*"|[\d.]+e\d+|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
             //===============
             if ($op == '!' && !$expecting_op) {
                 $stack->push('!'); // put a negation on the stack
@@ -266,6 +268,7 @@ class Expression {
             } elseif ($ex and !$expecting_op) { // do we now have a function/variable/number?
                 $expecting_op = true;
                 $val = $match[1];
+                echo "$val\n";
                 if (preg_match("/^([a-z]\w*)\($/", $val, $matches)) { // may be func, or variable w/ implicit multiplication against parentheses...
                     if (in_array($matches[1], $this->fb) or array_key_exists($matches[1], $this->f)) { // it's a func
                         $stack->push($val);
