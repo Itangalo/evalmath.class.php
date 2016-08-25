@@ -268,7 +268,6 @@ class Expression {
             } elseif ($ex and !$expecting_op) { // do we now have a function/variable/number?
                 $expecting_op = true;
                 $val = $match[1];
-                echo "$val\n";
                 if (preg_match("/^([a-z]\w*)\($/", $val, $matches)) { // may be func, or variable w/ implicit multiplication against parentheses...
                     if (in_array($matches[1], $this->fb) or array_key_exists($matches[1], $this->f)) { // it's a func
                         $stack->push($val);
