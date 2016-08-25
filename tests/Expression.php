@@ -99,9 +99,14 @@ class ExpressionTest extends TestCase {
     public function testVariableAssignment() {
         $expressions = array('foo = "bar"' => array('var' => 'foo', 'value' => 'bar'),
                              'foo = 10' => array('var' => 'foo', 'value' => 10),
-                             'foo = 0.1' => array('var' => 'foo', 'value' => 0.1));
+                             'foo = 0.1' => array('var' => 'foo', 'value' => 0.1),
+                             'foo = 10 == 10' => array('var' => 'foo', 'value' => 1),
+                             'foo = 10 != 10' => array('var' => 'foo', 'value' => 0),
+                             'foo = "foo" =~ "/[fo]+/"' => array('var' => 'foo', 'value' => 1),
+                             'foo = 10 + 10' => array('var' => 'foo', 'value' => 20));
         foreach ($expressions as $expression => $object) {
             $expr = new Expression();
+            echo $expression . "\n";
             $expr->evaluate($expression);
             $this->assertEquals($expr->evaluate($object['var']), $object['value']);
         }

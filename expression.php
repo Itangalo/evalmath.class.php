@@ -121,7 +121,7 @@ class Expression {
             if (in_array($matches[1], $this->vb)) { // make sure we're not assigning to a constant
                 return $this->trigger("cannot assign to constant '$matches[1]'");
             }
-            if (($tmp = $this->pfx($this->nfx($matches[2]))) === false) return false; // get the result and make sure it's good
+            $tmp = $this->pfx($this->nfx($matches[2]));
             $this->v[$matches[1]] = $tmp; // if so, stick it in the variable array
             return $this->v[$matches[1]]; // and return the resulting value
         //===============
@@ -378,6 +378,8 @@ class Expression {
                 }
             // if the token is a number or variable, push it on the stack
             } else {
+                echo 'token: ' . $token . " " . (array_key_exists($token, $this->v) ? 'true' : 'false') . "\n";
+                print_r($this->v);
                 if (is_numeric($token)) {
                     $stack->push($token);
                 } else if (preg_match('/^"(?:[^"]|(?<=\\\\)")*"$/', $token)) {
