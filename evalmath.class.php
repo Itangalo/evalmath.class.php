@@ -181,28 +181,29 @@ class EvalMath
         $stack = new EvalMathStack;
         $output = array(); // postfix form of expression, to be passed to pfx()
         $expr = trim(strtolower($expr));
-
-        $ops = array('+', '-', '*', '/', '^', '_', '>', '<', '>=', '<=', '==', '!=', '&&', '||', '!');
-        $ops_r = array('+' => 0, '-' => 0, '*' => 0, '/' => 0, '^' => 1, '>' => 0,
-            '<' => 0, '>=' => 0, '<=' => 0, '==' => 0, '!=' => 0, '&&' => 0, '||' => 0, '!' => 0); // right-associative operator?  
-        $ops_p = array('+' => 4, '-' => 4, '*' => 4, '/' => 4, '_' => 4, '^' => 5, '>' => 2, '<' => 2,
-            '>=' => 2, '<=' => 2, '==' => 2, '!=' => 2, '&&' => 1, '||' => 1, '!' => 0); // operator precedence
-
+        
+        $ops   = array('+', '-', '*', '/', '^', '_', '>', '<', '>=', '<=', '==', '!=', '=~', '!~', '&&', '||', '!');
+        $ops_r = array('+'=>0,'-'=>0,'*'=>0,'/'=>0,'^'=>1,'>'=>0,
+                       '<'=>0,'>='=>0,'<='=>0,'=='=>0,'!='=>0,'=~'=>0,'!~'=>0,
+                       '&&'=>0,'||'=>0,'!'=>0); // right-associative operator?
+        $ops_p = array('+'=>4,'-'=>4,'*'=>4,'/'=>4,'_'=>4,'^'=>5,'>'=>2,'<'=>2,
+                       '>='=>2,'<='=>2,'=='=>2,'!='=>2,'=~'=>2,'!~'=>2,'&&'=>1,'||'=>1,'!'=>0); // operator precedence
+        
         $expecting_op = false; // we use this in syntax-checking the expression
-        // and determining when a - is a negation
-
-        if (preg_match("/[^\w\s+*^\/()\.,-<>=&|!]/", $expr, $matches)) { // make sure the characters are all good
-            return $this->trigger("illegal character '{$matches[0]}'");
+                               // and determining when a - is a negation
+    
+        if (preg_match("%[^\w\s+*^\/()\.,-<>=&~|!\"\\\\/]%", $expr, $matches)) { // make sure the characters are all good
+        //    return $this->trigger("illegal character '{$matches[0]}'");
         }
 
         while (1) { // 1 Infinite Loop ;)
             $op = substr($expr, $index, 2); // get the first two characters at the current index
-            if (preg_match("/^[+\-*\/^_<>=()!](?!=)/", $op) || preg_match("/\w/", $op)) {
+            if (preg_match("/^[+\-*\/^_\"<>=()!~](?!=|~)/", $op) || preg_match("/\w/", $op)) {
                 // fix $op if it should have one character
                 $op = substr($expr, $index, 1);
             }
             // find out if we're currently at the beginning of a number/variable/function/parenthesis/operand
-            $ex = preg_match('/^([a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\()/', substr($expr, $index), $match);
+            $ex = preg_match('/^("(?:[^"]|(?<=\\\\)")*"|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
             //===============
             if ($op == '!' && !$expecting_op) {
                 $stack->push('!'); // put a negation on the stack
@@ -292,7 +293,6 @@ class EvalMath
             } elseif (in_array($op, $ops) and !$expecting_op) {
                 return $this->trigger("unexpected operator '$op'");
             } else { // I don't even want to know what you did to get here
-                echo "$op\n";
                 return $this->trigger("an unexpected error occured");
             }
             if ($index == strlen($expr)) {
@@ -324,7 +324,7 @@ class EvalMath
 
         foreach ($tokens as $token) { // nice and easy
             // if the token is a binary operator, pop two values off the stack, do the operation, and push the result back on
-            if (in_array($token, array('+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||', '!='))) {
+            if (in_array($token, array('+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||', '!=', '=~', '!~'))) {
                 if (is_null($op2 = $stack->pop())) return $this->trigger("internal error");
                 if (is_null($op1 = $stack->pop())) return $this->trigger("internal error");
                 switch ($token) {
@@ -363,7 +363,17 @@ class EvalMath
                         $stack->push($op1 != $op2);
                         break;
                     case '&&':
-                        $stack->push($op1 && $op2);
+                        $stack->push($op1 && $op2); break;
+                    case '=~':
+                    case '!~':
+                        if ($token == '=~') {
+                            $stack->push(preg_match($op2, $op1, $match));
+                        } else {
+                            $stack->push(!preg_match($op2, $op1, $match));
+                        }
+                        for ($i = 0; $i < count($match); $i++) {
+                            $this->v['$' . $i] = $match[$i];
+                        }
                         break;
                     case '||':
                         $stack->push($op1 || $op2);
@@ -394,6 +404,8 @@ class EvalMath
             } else {
                 if (is_numeric($token)) {
                     $stack->push($token);
+                } else if (preg_match('/^"(?:[^"]|(?<=\\\\)")*"$/', $token)) {
+                    $stack->push(json_decode($token));
                 } elseif (array_key_exists($token, $this->v)) {
                     $stack->push($this->v[$token]);
                 } elseif (array_key_exists($token, $vars)) {
