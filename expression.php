@@ -14,18 +14,18 @@ NAME
     
 SYNOPSIS
     <?
-      include('evalmath.class.php');
-      $m = new EvalMath;
+      include('expression.php');
+      $e = new Expression();
       // basic evaluation:
-      $result = $m->evaluate('2+2');
+      $result = $e->evaluate('2+2');
       // supports: order of operation; parentheses; negation; built-in functions
-      $result = $m->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
+      $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
       // create your own variables
-      $m->evaluate('a = e^(ln(pi))');
+      $e->evaluate('a = e^(ln(pi))');
       // or functions
-      $m->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
+      $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
       // and then use them
-      $result = $m->evaluate('3*f(42,a)');
+      $result = $e->evaluate('3*f(42,a)');
     ?>
       
 DESCRIPTION
