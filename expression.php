@@ -10,7 +10,7 @@ Copyright (C) 2016 Jakub Jankiewicz <http://jcubic.pl/>
 ================================================================================
 
 NAME
-    Expression - safely evaluate math expressions
+    Expression - safely evaluate math and boolean expressions
     
 SYNOPSIS
     <?
@@ -56,8 +56,9 @@ PARAMETERS
         If the last evaluation failed, contains a string describing the error.
         (Useful when suppress_errors is on).
 
-AUTHOR INFORMATION
+AUTHORS INFORMATION
     Copyright 2005, Miles Kaufmann.
+    Copyright 2016, Jakub Jankiewicz
 
 LICENSE
     Redistribution and use in source and binary forms, with or without
