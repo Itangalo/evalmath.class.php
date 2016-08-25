@@ -380,13 +380,11 @@ class Expression {
                 }
             // if the token is a number or variable, push it on the stack
             } else {
-                echo "xxx: " . $token . "\n";
                 if (is_numeric($token)) {
                     $stack->push($token);
                 } else if (preg_match('/^"(?:[^"]|(?<=\\\\)")*"$/', $token)) {
                     $stack->push(json_decode($token));
                 } elseif (array_key_exists($token, $this->v)) {
-                    echo "yyyy: " . $this->v[$token] . "\n";
                     $stack->push($this->v[$token]);
                 } elseif (array_key_exists($token, $vars)) {
                     $stack->push($vars[$token]);
