@@ -34,7 +34,7 @@ class ExpressionTest extends TestCase {
     // -------------------------------------------------------------------------
     public function testAritmeticOperators() {
         $expressions = array("20+20", "-20+20", "-0.1+0.1", "20*20", "20-20",
-                             "20/20");
+                             "20/20", '10%20', '10%9', '20%9');
         $this->arrayTest($expressions);
     }
     // -------------------------------------------------------------------------
@@ -106,7 +106,6 @@ class ExpressionTest extends TestCase {
                              'foo = 10 + 10' => array('var' => 'foo', 'value' => 20));
         foreach ($expressions as $expression => $object) {
             $expr = new Expression();
-            echo $expression . "\n";
             $expr->evaluate($expression);
             $this->assertEquals($expr->evaluate($object['var']), $object['value']);
         }
@@ -125,7 +124,6 @@ class ExpressionTest extends TestCase {
                            ));
         foreach ($functions as $function => $object) {
             $expr = new Expression();
-            echo $expression . "\n";
             $expr->evaluate($expression);
             foreach ($object as $fn => $value) {
                 $this->assertEquals($expr->evaluate($fn), $value);
