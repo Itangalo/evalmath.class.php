@@ -29,30 +29,32 @@ SYNOPSIS
     ?>
       
 DESCRIPTION
-    Use the EvalMath class when you want to evaluate mathematical expressions 
-    from untrusted sources.  You can define your own variables and functions,
-    which are stored in the object.  Try it, it's fun!
+    Use the Expressoion class when you want to evaluate mathematical or boolean
+    expressions  from untrusted sources.  You can define your own variables and
+    functions, which are stored in the object.  Try it, it's fun!
+    
+    Based on http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
 
 METHODS
-    $m->evalute($expr)
+    $e->evalute($expr)
         Evaluates the expression and returns the result.  If an error occurs,
         prints a warning and returns false.  If $expr is a function assignment,
         returns true on success.
     
-    $m->e($expr)
-        A synonym for $m->evaluate().
+    $e->e($expr)
+        A synonym for $e->evaluate().
     
-    $m->vars()
+    $e->vars()
         Returns an associative array of all user-defined variables and values.
         
-    $m->funcs()
+    $e->funcs()
         Returns an array of all user-defined functions.
 
 PARAMETERS
-    $m->suppress_errors
+    $e->suppress_errors
         Set to true to turn off warnings when evaluating expressions
 
-    $m->last_error
+    $e->last_error
         If the last evaluation failed, contains a string describing the error.
         (Useful when suppress_errors is on).
 
