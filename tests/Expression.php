@@ -111,25 +111,37 @@ class ExpressionTest extends TestCase {
         }
     }
     // -------------------------------------------------------------------------
-    public function tesCustomFunctions() {
-        $functions = array('square(x) = x*x' => array('square(10)' => 20),
+    public function testCustomFunctions() {
+        $functions = array('square(x) = x*x' => array('square(10)' => 100),
                            'number(x) = x =~ "/^[0-9]+$/"' => array(
                                 'number("10")' => 1,
                                 'number("10foo")' => 0
                            ),
                            'logic(x, y) = x == "foo" || x == "bar"' => array(
-                                'logic("foo")' => 1,
-                                'logic("bar")' => 1,
-                                'logic("lorem")' => 0
+                                'logic( "foo", 1 )' => 1,
+                                'logic("bar", 1)' => 1,
+                                'logic("lorem", 1)' => 0
                            ));
         foreach ($functions as $function => $object) {
             $expr = new Expression();
-            $expr->evaluate($expression);
+            $expr->evaluate($function);
             foreach ($object as $fn => $value) {
                 $this->assertEquals($expr->evaluate($fn), $value);
             }
         }       
     }
+    // -------------------------------------------------------------------------
+    public function testCustomClosures() {
+        $expr = new Expression();
+        $expr->functions['even'] = function($a) {
+            return $a % 2 == 0;
+        };
+        $values = array(10 => true, 20 => true, 1 => false, 3 => false, 4 => true);
+        foreach ($values as $number => $value) {
+            $this->assertEquals((bool)$expr->evaluate("even($number)"), $value);
+        }
+    }
+    
 }
 
 ?>

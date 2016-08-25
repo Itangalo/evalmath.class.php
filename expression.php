@@ -103,6 +103,8 @@ class Expression {
         'cos','cosh','arccos','acos','arccosh','acosh',
         'tan','tanh','arctan','atan','arctanh','atanh',
         'sqrt','abs','ln','log');
+
+    var $functions = array(); // function defined outside of Expression as closures
     
     function __construct() {
         // make the variables a little more accurate
@@ -196,7 +198,7 @@ class Expression {
 
         while(1) { // 1 Infinite Loop ;)
             $op = substr($expr, $index, 2); // get the first two characters at the current index
-            if (preg_match("/^[+\-*\/^_\"<>=%()!~](?!=|~)/", $op) || preg_match("/\w/", $op)) {
+            if (preg_match("/^[+\-*\/^_\"<>=%()!~,](?!=|~)/", $op) || preg_match("/\w/", $op)) {
                 // fix $op if it should have one character
                 $op = substr($expr, $index, 1);
             }
@@ -244,6 +246,11 @@ class Expression {
                     } elseif (array_key_exists($fnn, $this->f)) {
                         if ($arg_count != count($this->f[$fnn]['args']))
                             return $this->trigger("wrong number of arguments ($arg_count given, " . count($this->f[$fnn]['args']) . " expected)");
+                    } elseif (array_key_exists($fnn, $this->functions)) {
+                        $func_reflection = new ReflectionFunction($this->functions[$fnn]);
+                        $count = $func_reflection->getNumberOfParameters();
+                        if ($arg_count != $count)
+                            return $this->trigger("wrong number of arguments ($arg_count given, " . count($this->f[$fnn]['args']) . " expected)");
                     } else { // did we somehow push a non-function on the stack? this should never happen
                         return $this->trigger("internal error");
                     }
@@ -272,7 +279,9 @@ class Expression {
                 $expecting_op = true;
                 $val = $match[1];
                 if (preg_match("/^([a-z]\w*)\($/", $val, $matches)) { // may be func, or variable w/ implicit multiplication against parentheses...
-                    if (in_array($matches[1], $this->fb) or array_key_exists($matches[1], $this->f)) { // it's a func
+                    if (in_array($matches[1], $this->fb) or
+                        array_key_exists($matches[1], $this->f) or
+                        array_key_exists($matches[1], $this->functions)) { // it's a func
                         $stack->push($val);
                         $stack->push(1);
                         $stack->push('(');
@@ -377,9 +386,22 @@ class Expression {
                     // get args
                     $args = array();
                     for ($i = count($this->f[$fnn]['args'])-1; $i >= 0; $i--) {
-                        if (is_null($args[$this->f[$fnn]['args'][$i]] = $stack->pop())) return $this->trigger("internal error");
+                        if ($stack->empty()) {
+                            return $this->trigger("internal error");
+                        }
+                        $args[$this->f[$fnn]['args'][$i]] = $stack->pop();
                     }
                     $stack->push($this->pfx($this->f[$fnn]['func'], $args)); // yay... recursion!!!!
+                } else if (array_key_exists($fnn, $this->functions)) {
+                    $reflection = new ReflectionFunction($this->functions[$fnn]);
+                    $count = $reflection->getNumberOfParameters();
+                    for ($i = $count-1; $i >= 0; $i--) {
+                        if ($stack->empty()) {
+                            return $this->trigger("internal error");
+                        }
+                        $args[] = $stack->pop();
+                    }
+                    $stack->push($reflection->invokeArgs($args));
                 }
             // if the token is a number or variable, push it on the stack
             } else {
@@ -426,6 +448,10 @@ class ExpressionStack {
             return $this->stack[$this->count];
         }
         return null;
+    }
+    
+    function empty() {
+        return empty($this->stack);
     }
     
     function last($n=1) {
