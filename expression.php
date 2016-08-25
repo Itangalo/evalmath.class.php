@@ -378,8 +378,6 @@ class Expression {
                 }
             // if the token is a number or variable, push it on the stack
             } else {
-                echo 'token: ' . $token . " " . (array_key_exists($token, $this->v) ? 'true' : 'false') . "\n";
-                print_r($this->v);
                 if (is_numeric($token)) {
                     $stack->push($token);
                 } else if (preg_match('/^"(?:[^"]|(?<=\\\\)")*"$/', $token)) {
