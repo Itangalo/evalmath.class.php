@@ -315,9 +315,7 @@ class Expression {
         if ($tokens == false) return false;
     
         $stack = new ExpressionStack();
-        print_r($tokens);
         foreach ($tokens as $token) { // nice and easy
-            print_r($stack->stack);
             // if the token is a binary operator, pop two values off the stack, do the operation, and push the result back on
             if (in_array($token, array('+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||', '!=', '=~'))) {
                 if (is_null($op2 = $stack->pop())) return $this->trigger("internal error");
