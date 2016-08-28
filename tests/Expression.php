@@ -24,7 +24,7 @@ class ExpressionTest extends TestCase {
     }
     // -------------------------------------------------------------------------
     public function testFloats() {
-        $ints = array("10.10", "0.01", "-100.100", "1.10e2", "-0.10e10");
+        $ints = array("10.10", "0.01", ".1", "1.", "-100.100", "1.10e2", "-0.10e10");
         $expr = new Expression();
         for ($i=0; $i<count($ints); $i++) {
             $result = $expr->evaluate($ints[$i]);
