@@ -33,9 +33,18 @@ class ExpressionTest extends TestCase {
     }
     // -------------------------------------------------------------------------
     public function testAritmeticOperators() {
-        $expressions = array("20+20", "-20+20", "-0.1+0.1", "20*20", "20-20",
-                             "20/20", '10%20', '10%9', '20%9');
+        $expressions = array("20+20", "-20+20", "-0.1+0.1", ".1+.1", "1.+1.",
+                             "0.1+(-0.1)", "20*20", "-20*20", "20*(-20)", "1.*1.",
+                             ".1*.1", "20-20", "-20-20", "20/20", "-20/20", "10%20",
+                             "10%9", "20%9");
         $this->arrayTest($expressions);
+        try {
+            $expr = new Expression();
+            $expr->evaluate('10/0');
+            $this->assertTrue(false); // will fail if evaluate don't throw exception
+        } catch(Exception $e) {
+            $this->assertTrue(true);
+        }
     }
     // -------------------------------------------------------------------------
     public function testSemicolon() {
