@@ -112,7 +112,13 @@ class ExpressionTest extends TestCase {
     }
     // -------------------------------------------------------------------------
     public function testCustomFunctions() {
-        $functions = array('square(x) = x*x' => array('square(10)' => 100),
+        $functions = array('square(x) = x*x' => array(
+                                'square(10)' => 100,
+                                'square(10) == 100' => 1
+                           ),
+                           'string() = "foo"' => array(
+                                'string() =~ "/[fo]+/"' => 1
+                           ),
                            'number(x) = x =~ "/^[0-9]+$/"' => array(
                                 'number("10")' => 1,
                                 'number("10foo")' => 0
@@ -130,6 +136,7 @@ class ExpressionTest extends TestCase {
             }
         }       
     }
+
     // -------------------------------------------------------------------------
     public function testCustomClosures() {
         $expr = new Expression();
