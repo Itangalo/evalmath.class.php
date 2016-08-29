@@ -88,6 +88,13 @@ class ExpressionTest extends TestCase {
                              "'foo\"bar' == 'foo\"bar'", "'foo' == 'foo'",
                              "'foo\\'foo' != 'foo'");
         $this->arrayTest($expressions);
+        $expressions = array('"foo" + "bar"' => 'foobar', "'foo' + 'bar'" => 'foobar',
+                             '"foo\\"bar" + "baz"' => "foo\"barbaz");
+        $expr = new Expression();
+        foreach ($expressions as $expression => $value) {
+            $result = $expr->evaluate($expression);
+            $this->assertEquals($result, $value);
+        }
     }
     // -------------------------------------------------------------------------
     public function testMatchers() {

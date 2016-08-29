@@ -357,7 +357,12 @@ class Expression {
                 if (is_null($op1 = $stack->pop())) return $this->trigger("internal error");
                 switch ($token) {
                     case '+':
-                        $stack->push($op1 + $op2); break;
+                        if (!is_numeric($op1) || !is_numeric($op2)) {
+                            $stack->push((string)$op1 . (string)$op2);
+                        } else {
+                            $stack->push($op1 + $op2);
+                        }
+                        break;
                     case '-':
                         $stack->push($op1 - $op2); break;
                     case '*':
