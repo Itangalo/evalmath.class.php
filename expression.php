@@ -384,6 +384,9 @@ class Expression {
                     case '&&':
                         $stack->push($op1 && $op2); break;
                     case '=~':
+                        if (!preg_match("/^(.).*\\1/", $op2)) {
+                            return $this->trigger("Invalid regex " . json_encode($op2));
+                        }
                         $stack->push(preg_match($op2, $op1, $match));
                         for ($i = 0; $i < count($match); $i++) {
                             $this->v['$' . $i] = $match[$i];
