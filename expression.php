@@ -131,7 +131,7 @@ class Expression {
             return $this->v[$matches[1]]; // and return the resulting value
         //===============
         // is it a function assignment?
-        } elseif (preg_match('/^\s*([a-z]\w*)\s*\((?:\s*([a-z]\w*(?:\s*,\s*[a-z]\w*)*)\s*)?\)\s*=(?!~)\s*(.+)$/', $expr, $matches)) {
+        } elseif (preg_match('/^\s*([a-z]\w*)\s*\((?:\s*([a-z]\w*(?:\s*,\s*[a-z]\w*)*)\s*)?\)\s*=(?!~|=)\s*(.+)$/', $expr, $matches)) {
             $fnn = $matches[1]; // get the function name
             if (in_array($matches[1], $this->fb)) { // make sure it isn't built in
                 return $this->trigger("cannot redefine built-in function '$matches[1]()'");

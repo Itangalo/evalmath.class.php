@@ -126,7 +126,9 @@ class ExpressionTest extends TestCase {
                                 'square(10) == 100' => 1
                            ),
                            'string() = "foo"' => array(
-                                'string() =~ "/[fo]+/"' => 1
+                                'string() =~ "/[fo]+/"' => 1,
+                                'string() == "foo"' => 1,
+                                'string() != "bar"' => 1
                            ),
                            'number(x) = x =~ "/^[0-9]+$/"' => array(
                                 'number("10")' => 1,
