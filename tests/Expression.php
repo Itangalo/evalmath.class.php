@@ -12,6 +12,7 @@ class ExpressionTest extends TestCase {
             $this->assertEquals($result, eval("return " . $array[$i] . ";"));
         }
     }
+
     // -------------------------------------------------------------------------
     public function testIntegers() {
         $ints = array("100", "3124123", (string)PHP_INT_MAX, "-1000");
@@ -83,7 +84,9 @@ class ExpressionTest extends TestCase {
     // -------------------------------------------------------------------------
     public function testStrings() {
         $expressions = array('"foo" == "foo"', '"foo\\"bar" == "foo\\"bar"',
-                             '"f\\"oo" != "f\\"oo"', '"foo\\"" != "foo\\"bar"');
+                             '"f\\"oo" != "f\\"oo"', '"foo\\"" != "foo\\"bar"',
+                             "'foo\"bar' == 'foo\"bar'", "'foo' == 'foo'",
+                             "'foo\\'foo' != 'foo'");
         $this->arrayTest($expressions);
     }
     // -------------------------------------------------------------------------
@@ -159,7 +162,7 @@ class ExpressionTest extends TestCase {
             $this->assertEquals((bool)$expr->evaluate("even($number)"), $value);
         }
     }
-    
+    // */
 }
 
 ?>

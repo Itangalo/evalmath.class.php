@@ -179,7 +179,6 @@ class Expression {
 
     // Convert infix to postfix notation
     function nfx($expr) {
-    
         $index = 0;
         $stack = new ExpressionStack;
         $output = array(); // postfix form of expression, to be passed to pfx()
@@ -208,7 +207,7 @@ class Expression {
                 $op = substr($expr, $index, 1);
             }
             // find out if we're currently at the beginning of a number/variable/function/parenthesis/operand
-            $ex = preg_match('/^("(?:[^"]|(?<=\\\\)")*"|[\d.]+e\d+|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
+            $ex = preg_match('/^(\'(?:[^\']|(?<=\\\\)\')*\'|"(?:[^"]|(?<=\\\\)")*"|[\d.]+e\d+|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
             //===============
             if ($op == '!' && !$expecting_op) {
                 $stack->push('!'); // put a negation on the stack
@@ -306,12 +305,12 @@ class Expression {
                     if (preg_match("/^([a-z]\w*)\($/", $stack->last(3))) {
                         $first_argument = true;
                         while (($o2 = $stack->pop()) != '(') { 
-                            if (is_null($o2)) return $this->trigger("unexpected "); // oops, never had a (
+                            if (is_null($o2)) return $this->trigger("unexpected error"); // oops, never had a (
                             else $output[] = $o2; // pop the argument expression stuff and push onto the output
                         }
                         // make sure there was a function
                         if (!preg_match("/^([a-z]\w*)\($/", $stack->last(2), $matches))
-                            return $this->trigger("unexpected ','");
+                            return $this->trigger("unexpected error");
                             
                         $stack->push($stack->pop()+1); // increment the argument count
                         $stack->push('('); // put the ( back on, we'll need to pop back to it again
@@ -431,8 +430,12 @@ class Expression {
             } else {
                 if (is_numeric($token)) {
                     $stack->push($token);
-                } else if (preg_match('/^"(?:[^"]|(?<=\\\\)")*"$/', $token)) {
-                    $stack->push(json_decode($token));
+                } else if (preg_match('/^(\'(?:[^\']|(?<=\\\\)\')*\'|"(?:[^"]|(?<=\\\\)")*")$/', $token)) {
+                    $stack->push(json_decode(preg_replace_callback("/^['\\\"](.*)['\\\"]$/", function($matches) {
+                        $m = array("/\\\\'/", '/(?<!\\\\)"/');
+                        $r = array("'", '\\"');
+                        return '"' . preg_replace($m, $r, $matches[1]) . '"';
+                    }, $token)));
                 } elseif (array_key_exists($token, $this->v)) {
                     $stack->push($this->v[$token]);
                 } elseif (array_key_exists($token, $vars)) {
