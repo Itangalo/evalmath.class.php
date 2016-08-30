@@ -84,6 +84,13 @@ class ExpressionTest extends TestCase {
             $result = $expr->evaluate($expression);
             $this->assertTrue((bool)$result);
         }
+        $expressions = array("foo = true"=>true, "foo = false"=>false, "foo = null"=>null);
+        foreach ($expressions as $expression => $value) {
+            $expr = new Expression();
+            $result = $expr->evaluate($expression);
+            $result = $expr->evaluate("foo");
+            $this->assertEquals($result, $value);
+        }
         
     }
     // -------------------------------------------------------------------------
