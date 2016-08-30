@@ -202,14 +202,21 @@ class Expression {
         $first_argument = false;
         while(1) { // 1 Infinite Loop ;)
             $op = substr($expr, $index, 2); // get the first two characters at the current index
-            if (preg_match("/^[+\-*\/^_\"<>=%()!~,](?!=|~)/", $op) || preg_match("/\w/", $op)) {
+            if (preg_match("/^[+\-*\/^_\"<>=%(){\[!~,](?!=|~)/", $op) || preg_match("/\w/", $op)) {
                 // fix $op if it should have one character
                 $op = substr($expr, $index, 1);
             }
-            // find out if we're currently at the beginning of a number/variable/function/parenthesis/operand
-            $ex = preg_match('/^(\'(?:[^\']|(?<=\\\\)\')*\'|"(?:[^"]|(?<=\\\\)")*"|[\d.]+e\d+|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
+            // find out if we're currently at the beginning of a number/string/object/array/variable/function/parenthesis/operand
+            $ex = preg_match('/^(\'(?:[^\']|(?<=\\\\)\')*\'|"(?:[^"]|(?<=\\\\)")*"|[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]|[\d.]+e\d+|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
             //===============
-            if ($op == '!' && !$expecting_op) {
+            if ($op == '[' && $expecting_op && $ex) {
+                if (!preg_match("/^\[(.*)\]$/", $match[1], $matches)) {
+                    return $this->trigger("invalid array access");
+                }
+                $stack->push('[');                
+                $stack->push($matches[1]);
+                $index += strlen($match[1]);
+            } elseif ($op == '!' && !$expecting_op) {
                 $stack->push('!'); // put a negation on the stack
                 $index++;
             } elseif ($op == '-' and !$expecting_op) { // is it a negation instead of a minus?
@@ -288,7 +295,9 @@ class Expression {
             } elseif ($ex and !$expecting_op) { // do we now have a function/variable/number?
                 $expecting_op = true;
                 $val = $match[1];
-                if (preg_match("/^([a-z]\w*)\($/", $val, $matches)) { // may be func, or variable w/ implicit multiplication against parentheses...
+                if ($op == '[' || $op == "{" || preg_match("/null|true|false/", $match[1])) {
+                    $output[] = $val;
+                } elseif (preg_match("/^([a-z]\w*)\($/", $val, $matches)) { // may be func, or variable w/ implicit multiplication against parentheses...
                     if (in_array($matches[1], $this->fb) or
                         array_key_exists($matches[1], $this->f) or
                         array_key_exists($matches[1], $this->functions)) { // it's a func
@@ -348,16 +357,15 @@ class Expression {
     function pfx($tokens, $vars = array()) {
         
         if ($tokens == false) return false;
-    
         $stack = new ExpressionStack();
         foreach ($tokens as $token) { // nice and easy
             // if the token is a binary operator, pop two values off the stack, do the operation, and push the result back on
             if (in_array($token, array('+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||', '!=', '=~', '%'))) {
-                if (is_null($op2 = $stack->pop())) return $this->trigger("internal error");
-                if (is_null($op1 = $stack->pop())) return $this->trigger("internal error");
+                $op2 = $stack->pop();
+                $op1 = $stack->pop();
                 switch ($token) {
                     case '+':
-                        if (!is_numeric($op1) || !is_numeric($op2)) {
+                        if (is_string($op1) || is_string($op2)) {
                             $stack->push((string)$op1 . (string)$op2);
                         } else {
                             $stack->push($op1 + $op2);
@@ -383,9 +391,19 @@ class Expression {
                     case '<=':
                         $stack->push($op1 <= $op2); break;
                     case '==':
-                        $stack->push($op1 == $op2); break;
+                        if (is_array($op1) && is_array($op2)) {
+                            $stack->push(json_encode($op1) == json_encode($op2));
+                        } else {
+                            $stack->push($op1 == $op2);
+                        }
+                        break;
                     case '!=':
-                        $stack->push($op1 != $op2); break;
+                        if (is_array($op1) && is_array($op2)) {
+                            $stack->push(json_encode($op1) != json_encode($op2));
+                        } else {
+                            $stack->push($op1 != $op2);
+                        }
+                        break;
                     case '&&':
                         $stack->push($op1 && $op2); break;
                     case '=~':
@@ -403,6 +421,16 @@ class Expression {
             // if the token is a unary operator, pop one value off the stack, do the operation, and push it back on
             } elseif ($token == '!') {
                 $stack->push(!$stack->pop());
+            } elseif ($token == '[') {
+                $selector = $stack->pop();
+                $object = $stack->pop();
+                if (is_object($object)) {
+                    $stack->push($object->$selector);
+                } elseif (is_array($object)) {
+                    $stack->push($object[$selector]);
+                } else {
+                    return $this->trigger("invalid object for selector");
+                }
             } elseif ($token == "_") {
                 $stack->push(-1*$stack->pop());
             // if the token is a function, pop arguments off the stack, hand them to the function, and push the result back on
@@ -436,8 +464,19 @@ class Expression {
                 }
             // if the token is a number or variable, push it on the stack
             } else {
-                if (is_numeric($token)) {
-                    $stack->push($token);
+                if (preg_match('/^([\[{](?>"(?:[^"]|\\")*"|[^[{\]}]|(?1))*[\]}])$/', $token)) { // json
+                    //return $this->trigger("invalid json " . $token);
+                    if ($token == 'null') {
+                        $value = null;
+                    } else {
+                        $value = json_decode($token);
+                        if ($value == null) {
+                            return $this->trigger("invalid json " . $token);
+                        }
+                    }
+                    $stack->push($value);
+                } elseif (is_numeric($token)) {
+                    $stack->push(0+$token);
                 } else if (preg_match('/^(\'(?:[^\']|(?<=\\\\)\')*\'|"(?:[^"]|(?<=\\\\)")*")$/', $token)) {
                     $stack->push(json_decode(preg_replace_callback("/^['\\\"](.*)['\\\"]$/", function($matches) {
                         $m = array("/\\\\'/", '/(?<!\\\\)"/');

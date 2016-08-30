@@ -12,7 +12,43 @@ class ExpressionTest extends TestCase {
             $this->assertEquals($result, eval("return " . $array[$i] . ";"));
         }
     }
-
+    public function testJSON() {
+        $expressions = array(
+            array("foo" => "bar"),
+            array('foo\\"bar' => "baz"),
+            array("foo}" => "bar"),
+            array(10,20,30,40),
+            array(10,"]",30),
+            array(10, array("foo"=>"bar"), 30)
+        );
+        $expr = new Expression();
+        foreach ($expressions as $expression) {
+            $json = json_encode($expression);
+            $result = $expr->evaluate($json);
+            $this->assertEquals(json_encode($result), $json);
+        }
+        $expressions = array(
+            '{"foo":"bar"} == {"foo":"bar"}' => true,
+            '[10,20] != [20,30]' => true
+        );
+        foreach ($expressions as $expression => $value) {
+            $result = $expr->evaluate($expression);
+            $this->assertEquals((bool)$result, $value);
+        }
+        $expressions = array(
+            '{"foo":"bar"}["foo"]' => "bar",
+            '[10,20][0]' => 10
+        );
+        foreach ($expressions as $expression => $value) {
+            $result = $expr->evaluate($expression);
+            $this->assertEquals($result, $value);
+        }
+        $expr->evaluate('foo = {"foo": "bar"}');
+        $result = $expr->evaluate('foo["foo"]');
+        $this->assertEquals($result, 'bar');
+        
+        
+    }
     // -------------------------------------------------------------------------
     public function testIntegers() {
         $ints = array("100", "3124123", (string)PHP_INT_MAX, "-1000");
