@@ -12,6 +12,13 @@ class ExpressionTest extends TestCase {
             $this->assertEquals($result, eval("return " . $array[$i] . ";"));
         }
     }
+    /*
+    public function testTest() {
+        $expression = '"lorem" + (!false && "\n" || "")';
+        $expr = new Expression();
+        echo json_encode($expr->evaluate($expression));
+    }
+    */
     // -------------------------------------------------------------------------
     public function testIntegers() {
         $ints = array("100", "3124123", (string)PHP_INT_MAX, "-1000");

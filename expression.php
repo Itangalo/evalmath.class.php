@@ -189,7 +189,7 @@ class Expression {
                        '<'=>0,'>='=>0,'<='=>0,'=='=>0,'!='=>0,'=~'=>0,
                        '&&'=>0,'||'=>0,'!'=>0); // right-associative operator?  
         $ops_p = array('+'=>4,'-'=>4,'*'=>4,'/'=>4,'_'=>4,'%'=>4,'^'=>5,'>'=>2,'<'=>2,
-                       '>='=>2,'<='=>2,'=='=>2,'!='=>2,'=~'=>2,'&&'=>1,'||'=>1,'!'=>0); // operator precedence
+                       '>='=>2,'<='=>2,'=='=>2,'!='=>2,'=~'=>2,'&&'=>1,'||'=>1,'!'=>5); // operator precedence
         
         $expecting_op = false; // we use this in syntax-checking the expression
                                // and determining when a - is a negation
@@ -216,9 +216,9 @@ class Expression {
                 $stack->push('[');                
                 $stack->push($matches[1]);
                 $index += strlen($match[1]);
-            } elseif ($op == '!' && !$expecting_op) {
-                $stack->push('!'); // put a negation on the stack
-                $index++;
+            //} elseif ($op == '!' && !$expecting_op) {
+            //    $stack->push('!'); // put a negation on the stack
+            //    $index++;
             } elseif ($op == '-' and !$expecting_op) { // is it a negation instead of a minus?
                 $stack->push('_'); // put a negation on the stack
                 $index++;
