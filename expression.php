@@ -404,8 +404,6 @@ class Expression {
                             $stack->push($op1 != $op2);
                         }
                         break;
-                    case '&&':
-                        $stack->push($op1 && $op2); break;
                     case '=~':
                         if (!preg_match("/^(.).*\\1/", $op2)) {
                             return $this->trigger("Invalid regex " . json_encode($op2));
@@ -415,8 +413,10 @@ class Expression {
                             $this->v['$' . $i] = $match[$i];
                         }
                         break;
+                    case '&&':
+                        $stack->push($op1 && $op2 ? $op2 : ($op1 ? $op2 : $op1)); break;
                     case '||':
-                        $stack->push($op1 || $op2); break;
+                        $stack->push($op1 ? $op1 : $op2); break;
                 }
             // if the token is a unary operator, pop one value off the stack, do the operation, and push it back on
             } elseif ($token == '!') {

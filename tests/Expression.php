@@ -74,6 +74,13 @@ class ExpressionTest extends TestCase {
                              "0.1 == 0.1 || 0.1 == 0.1", "0.1 == 0.2 || 0.1 == 0.1",
                              "0.1 == 0.1 || 0.1 == 0.2");
         $this->arrayTest($expressions);
+        $expressions = array('("foo" == "foo") && "a" || "b"' => "a",
+                             '("foo" == "bar") && "a" || "b"' => "b");
+        $expr = new Expression();
+        foreach ($expressions as $expression => $value) {
+            $result = $expr->evaluate($expression);
+            $this->assertEquals($result, $value);
+        }
     }
     // -------------------------------------------------------------------------
     public function testKeywords() {
