@@ -122,7 +122,7 @@ class Expression {
         if (substr($expr, -1, 1) == ';') $expr = substr($expr, 0, strlen($expr)-1); // strip semicolons at the end
         //===============
         // is it a variable assignment?
-        if (preg_match('/^\s*([a-z]\w*)\s*=\s*(.+)$/', $expr, $matches)) {
+        if (preg_match('/^\s*([a-z]\w*)\s*=(?!~|=)\s*(.+)$/', $expr, $matches)) {
             if (in_array($matches[1], $this->vb)) { // make sure we're not assigning to a constant
                 return $this->trigger("cannot assign to constant '$matches[1]'");
             }
@@ -330,9 +330,9 @@ class Expression {
             } elseif ($op == ')') { // miscellaneous error checking
                 return $this->trigger("unexpected ')'");
             } elseif (in_array($op, $ops) and !$expecting_op) {
-                return $this->trigger("unexpected operator '$op'"  . json_encode($op) . " " . json_encode($match) . " " . $expr);
+                return $this->trigger("unexpected operator '$op'");
             } else { // I don't even want to know what you did to get here
-                return $this->trigger("an unexpected error occured");
+                return $this->trigger("an unexpected error occured " . json_encode($op) . " " . json_encode($match) . " " . $expr);
             }
             if ($index == strlen($expr)) {
                 if (in_array($op, $ops)) { // did we end with an operator? bad.
@@ -464,10 +464,15 @@ class Expression {
                 }
             // if the token is a number or variable, push it on the stack
             } else {
-                if (preg_match('/^([\[{](?>"(?:[^"]|\\")*"|[^[{\]}]|(?1))*[\]}])$/', $token)) { // json
+                if (preg_match('/^([\[{](?>"(?:[^"]|\\")*"|[^[{\]}]|(?1))*[\]}])$/', $token) ||
+                    preg_match("/^(null|true|false)$/", $token)) { // json
                     //return $this->trigger("invalid json " . $token);
                     if ($token == 'null') {
                         $value = null;
+                    } elseif ($token == 'true') {
+                        $value = true;
+                    } elseif ($token == 'false') {
+                        $value = false;
                     } else {
                         $value = json_decode($token);
                         if ($value == null) {

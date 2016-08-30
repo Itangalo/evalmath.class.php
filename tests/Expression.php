@@ -12,43 +12,6 @@ class ExpressionTest extends TestCase {
             $this->assertEquals($result, eval("return " . $array[$i] . ";"));
         }
     }
-    public function testJSON() {
-        $expressions = array(
-            array("foo" => "bar"),
-            array('foo\\"bar' => "baz"),
-            array("foo}" => "bar"),
-            array(10,20,30,40),
-            array(10,"]",30),
-            array(10, array("foo"=>"bar"), 30)
-        );
-        $expr = new Expression();
-        foreach ($expressions as $expression) {
-            $json = json_encode($expression);
-            $result = $expr->evaluate($json);
-            $this->assertEquals(json_encode($result), $json);
-        }
-        $expressions = array(
-            '{"foo":"bar"} == {"foo":"bar"}' => true,
-            '{"foo2":"bar2"} == {"foo": "bar"}' => false,
-            '{"f}o2":"ba{r2"} != {"foo": "bar"}' => true,
-            '[10,20] != [20,30]' => true
-        );
-        foreach ($expressions as $expression => $value) {
-            $result = $expr->evaluate($expression);
-            $this->assertEquals((bool)$result, $value);
-        }
-        $expressions = array(
-            '{"foo":"bar"}["foo"]' => "bar",
-            '[10,20][0]' => 10
-        );
-        foreach ($expressions as $expression => $value) {
-            $result = $expr->evaluate($expression);
-            $this->assertEquals($result, $value);
-        }
-        $expr->evaluate('foo = {"foo": "bar"}');
-        $result = $expr->evaluate('foo["foo"]');
-        $this->assertEquals($result, 'bar');
-    }
     // -------------------------------------------------------------------------
     public function testIntegers() {
         $ints = array("100", "3124123", (string)PHP_INT_MAX, "-1000");
@@ -113,6 +76,17 @@ class ExpressionTest extends TestCase {
         $this->arrayTest($expressions);
     }
     // -------------------------------------------------------------------------
+    public function testKeywords() {
+        $expressions = array("1 == true", "true == true", "false == false",
+                             "false != true", "null == null", "null != true");
+        $expr = new Expression();
+        foreach ($expressions as $expression) {
+            $result = $expr->evaluate($expression);
+            $this->assertTrue((bool)$result);
+        }
+        
+    }
+    // -------------------------------------------------------------------------
     public function testNegation() {
         $expressions = array("!(10 == 10)", "!1", "!0");
         $this->arrayTest($expressions);
@@ -164,6 +138,44 @@ class ExpressionTest extends TestCase {
             $expr->evaluate($expression);
             $this->assertEquals($expr->evaluate($object['var']), $object['value']);
         }
+    }
+    // -------------------------------------------------------------------------
+    public function testJSON() {
+        $expressions = array(
+            array("foo" => "bar"),
+            array('foo\\"bar' => "baz"),
+            array("foo}" => "bar"),
+            array(10,20,30,40),
+            array(10,"]",30),
+            array(10, array("foo"=>"bar"), 30)
+        );
+        $expr = new Expression();
+        foreach ($expressions as $expression) {
+            $json = json_encode($expression);
+            $result = $expr->evaluate($json);
+            $this->assertEquals(json_encode($result), $json);
+        }
+        $expressions = array(
+            '{"foo":"bar"} == {"foo":"bar"}' => true,
+            '{"foo2":"bar2"} == {"foo": "bar"}' => false,
+            '{"f}o2":"ba{r2"} != {"foo": "bar"}' => true,
+            '[10,20] != [20,30]' => true
+        );
+        foreach ($expressions as $expression => $value) {
+            $result = $expr->evaluate($expression);
+            $this->assertEquals((bool)$result, $value);
+        }
+        $expressions = array(
+            '{"foo":"bar"}["foo"]' => "bar",
+            '[10,20][0]' => 10
+        );
+        foreach ($expressions as $expression => $value) {
+            $result = $expr->evaluate($expression);
+            $this->assertEquals($result, $value);
+        }
+        $expr->evaluate('foo = {"foo": "bar"}');
+        $result = $expr->evaluate('foo["foo"]');
+        $this->assertEquals($result, 'bar');
     }
     // -------------------------------------------------------------------------
     public function testCustomFunctions() {
