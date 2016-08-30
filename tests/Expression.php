@@ -29,6 +29,8 @@ class ExpressionTest extends TestCase {
         }
         $expressions = array(
             '{"foo":"bar"} == {"foo":"bar"}' => true,
+            '{"foo2":"bar2"} == {"foo": "bar"}' => false,
+            '{"f}o2":"ba{r2"} != {"foo": "bar"}' => true,
             '[10,20] != [20,30]' => true
         );
         foreach ($expressions as $expression => $value) {
@@ -46,8 +48,6 @@ class ExpressionTest extends TestCase {
         $expr->evaluate('foo = {"foo": "bar"}');
         $result = $expr->evaluate('foo["foo"]');
         $this->assertEquals($result, 'bar');
-        
-        
     }
     // -------------------------------------------------------------------------
     public function testIntegers() {
