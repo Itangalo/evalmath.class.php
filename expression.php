@@ -414,7 +414,7 @@ class Expression {
                         }
                         break;
                     case '&&':
-                        $stack->push($op1 && $op2 ? $op2 : ($op1 ? $op2 : $op1)); break;
+                        $stack->push($op1 ? $op2 : $op1); break;
                     case '||':
                         $stack->push($op1 ? $op1 : $op2); break;
                 }
