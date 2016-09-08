@@ -127,6 +127,8 @@ class ExpressionTest extends TestCase {
             $result = $expr->evaluate($expression);
             $this->assertEquals($result, $value);
         }
+        $result = $expr->evaluate('"foo\"ba\\\\\\"r" =~ "/foo/"');
+        $this->assertEquals((boolean)$result, true);
     }
     // -------------------------------------------------------------------------
     public function testMatchers() {
