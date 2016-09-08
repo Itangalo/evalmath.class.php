@@ -207,7 +207,7 @@ class Expression {
                 $op = substr($expr, $index, 1);
             }
             // find out if we're currently at the beginning of a number/string/object/array/variable/function/parenthesis/operand
-            $ex = preg_match('/^(\'(?:[^\']|(?<=\\\\)\')*\'|"(?:[^"]|(?<=\\\\)")*"|[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]|[\d.]+e\d+|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
+            $ex = preg_match('/^((?<!\\\\)"(?:(?<!\\\\)\\\\"|[^"])*(?<![^\\\\]\\\\)"|(?<!\\\\)\'(?:(?<!\\\\)\\\\\'|[^\'])*(?<![^\\\\]\\\\)\'|[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]|[\d.]+e\d+|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
             //===============
             if ($op == '[' && $expecting_op && $ex) {
                 if (!preg_match("/^\[(.*)\]$/", $match[1], $matches)) {
@@ -482,7 +482,7 @@ class Expression {
                     $stack->push($value);
                 } elseif (is_numeric($token)) {
                     $stack->push(0+$token);
-                } else if (preg_match('/^(\'(?:[^\']|(?<=\\\\)\')*\'|"(?:[^"]|(?<=\\\\)")*")$/', $token)) {
+                } else if (preg_match('/^((?<!\\\\)"(?:(?<!\\\\)\\\\"|[^"])*(?<![^\\\\]\\\\)"|(?<!\\\\)\'(?:(?<!\\\\)\\\\\'|[^\'])*(?<![^\\\\]\\\\)\')$/', $token)) {
                     $stack->push(json_decode(preg_replace_callback("/^['\\\"](.*)['\\\"]$/", function($matches) {
                         $m = array("/\\\\'/", '/(?<!\\\\)"/');
                         $r = array("'", '\\"');

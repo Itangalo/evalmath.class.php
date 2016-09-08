@@ -117,7 +117,8 @@ class ExpressionTest extends TestCase {
         $expressions = array('"foo" == "foo"', '"foo\\"bar" == "foo\\"bar"',
                              '"f\\"oo" != "f\\"oo"', '"foo\\"" != "foo\\"bar"',
                              "'foo\"bar' == 'foo\"bar'", "'foo' == 'foo'",
-                             "'foo\\'foo' != 'foo'");
+                             "'foo\\'foo' != 'foo'", '"foo\\\\" == "foo\\\\"',
+                             "'foo\\\\' == 'foo\\\\'");
         $this->arrayTest($expressions);
         $expressions = array('"foo" + "bar"' => 'foobar', "'foo' + 'bar'" => 'foobar',
                              '"foo\\"bar" + "baz"' => "foo\"barbaz");
