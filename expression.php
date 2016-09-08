@@ -206,8 +206,14 @@ class Expression {
                 // fix $op if it should have one character
                 $op = substr($expr, $index, 1);
             }
+            $single_str = '(?<!\\\\)"(?:(?:(?<!\\\\)(?:\\\\{2})*\\\\)"|[^"])*(?<![^\\\\]\\\\)"';
+            $double_str = "(?<!\\\\)'(?:(?:(?<!\\\\)(?:\\\\{2})*\\\\)'|[^'])*(?<![^\\\\]\\\\)'";
+            $json = '[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]';
+            $number = '[\d.]+e\d+|\d+(?:\.\d*)?|\.\d+';
+            $name = '[a-z]\w*\(?|\\$\w+';
+            $parenthesis = '\\(';
             // find out if we're currently at the beginning of a number/string/object/array/variable/function/parenthesis/operand
-            $ex = preg_match('/^((?<!\\\\)"(?:(?<!\\\\)\\\\"|[^"])*(?<![^\\\\]\\\\)"|(?<!\\\\)\'(?:(?<!\\\\)\\\\\'|[^\'])*(?<![^\\\\]\\\\)\'|[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]|[\d.]+e\d+|[a-z]\w*\(?|\d+(?:\.\d*)?|\.\d+|\(|\$\w+)/', substr($expr, $index), $match);
+            $ex = preg_match("%^($single_str|$double_str|$json|$name|$number|$parenthesis)%", substr($expr, $index), $match);
             //===============
             if ($op == '[' && $expecting_op && $ex) {
                 if (!preg_match("/^\[(.*)\]$/", $match[1], $matches)) {
@@ -332,7 +338,7 @@ class Expression {
             } elseif (in_array($op, $ops) and !$expecting_op) {
                 return $this->trigger("unexpected operator '$op'");
             } else { // I don't even want to know what you did to get here
-                return $this->trigger("an unexpected error occured " . json_encode($op) . " " . json_encode($match) . " " . $expr);
+                return $this->trigger("an unexpected error occured " . json_encode($op) . " " . json_encode($match) . " ". ($ex?'true':'false') . " " . $expr);
             }
             if ($index == strlen($expr)) {
                 if (in_array($op, $ops)) { // did we end with an operator? bad.
@@ -482,7 +488,7 @@ class Expression {
                     $stack->push($value);
                 } elseif (is_numeric($token)) {
                     $stack->push(0+$token);
-                } else if (preg_match('/^((?<!\\\\)"(?:(?<!\\\\)\\\\"|[^"])*(?<![^\\\\]\\\\)"|(?<!\\\\)\'(?:(?<!\\\\)\\\\\'|[^\'])*(?<![^\\\\]\\\\)\')$/', $token)) {
+                } else if (preg_match("/^['\\\"](.*)['\\\"]$/", $token)) {
                     $stack->push(json_decode(preg_replace_callback("/^['\\\"](.*)['\\\"]$/", function($matches) {
                         $m = array("/\\\\'/", '/(?<!\\\\)"/');
                         $r = array("'", '\\"');
