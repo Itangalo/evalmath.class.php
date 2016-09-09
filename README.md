@@ -21,6 +21,12 @@
       $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
       // and then use them
       $result = $e->evaluate('3*f(42,a)');
+      // create external functions
+      $e->functions['foo'] = function() {
+        return "foo";
+      };
+      // and use it
+      $result = $e->evaluate('foo()');
     ?>
       
 # DESCRIPTION
