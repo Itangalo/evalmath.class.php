@@ -9,6 +9,12 @@
       $result = $e->evaluate('2+2');
       // supports: order of operation; parentheses; negation; built-in functions
       $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
+      // support of booleans
+      $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
+      // support for strings and match
+      $result = $e->evaluate('"foo,bar" =~ "/^([fo]+),(bar)$/"');
+      // previous call will create $0 for whole match match and $1,$2 for groups
+      $result = $e->evaluate('$2');
       // create your own variables
       $e->evaluate('a = e^(ln(pi))');
       // or functions

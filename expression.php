@@ -411,10 +411,12 @@ class Expression {
                         }
                         break;
                     case '=~':
-                        if (!preg_match("/^(.).*\\1/", $op2)) {
+                        $value = @preg_match($op2, $op1, $match);
+                        
+                        if (!is_int($value)) {
                             return $this->trigger("Invalid regex " . json_encode($op2));
                         }
-                        $stack->push(preg_match($op2, $op1, $match));
+                        $stack->push($value);
                         for ($i = 0; $i < count($match); $i++) {
                             $this->v['$' . $i] = $match[$i];
                         }
