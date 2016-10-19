@@ -2,7 +2,7 @@
   "name": "optimistex/yii2-expression",
   "description": "Taken from http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann",
   "type": "yii2-extension",
-  "version": "2.0",
+  "version": "2.0.1",
   "license": "MIT",
   "authors": [
     {
@@ -15,7 +15,7 @@
   ],
   "autoload": {
     "classmap": [
-      "evalmath.class.php"
+      "Expression.lib.php"
     ],
     "psr-4": {
       "optimistex\\expression\\": ""
