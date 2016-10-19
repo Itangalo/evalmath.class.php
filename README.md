@@ -1,7 +1,7 @@
 yii2-expression
 ==================
 
-Вычисление математических выражений от **Miles Kaufmann**
+Вычисление математических и логических выражений
 
 # Установка
 
@@ -27,28 +27,43 @@ yii2-expression
 
 ```php
     <?php
-      $m = new \optimistex\expression\Expression();
+      $e = new \optimistex\expression\ExpressionCore();
       
-      // базовые вычисления:
-      $result = $m->evaluate('2+2');
+      // базовые вычисления
+      $result = $e->evaluate('2+2');
       
       // поддержка: порядок операций; круглые скобки; отрицание; встроенные функции
-      $result = $m->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
+      $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
       
-      // создание своих собственных переменных
-      $m->evaluate('a = e^(ln(pi))');
+      // поддержка логических выражений
+      $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
       
-      // или своих функций
-      $m->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
+      // поддержка сравнения строки с регулярным выражением (регулярные выражения должныбыть такими же как в PHP)
+      $result = $e->evaluate('"foo,bar" =~ "/^([fo]+),(bar)$/"');
       
-      // а затем их использование
-      $result = $m->evaluate('3*f(42,a)');
+      // Предыдущий вызов создаст переменные $0 c общим результатом сравнения и $1, $2 с результатами групп
+      $result = $e->evaluate('$2');
+      
+      // Создание собственных переменных
+      $e->evaluate('a = e^(ln(pi))');
+      // или функций
+      $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
+      // и их использование
+      $result = $e->evaluate('3*f(42,a)');
+      
+      // Создание внешних функций
+      $e->functions['foo'] = function() {
+        return "foo";
+      };
+      // и их использование
+      $result = $e->evaluate('foo()');
     ?>
 ```
 
 ## Описание
 
-Используйте класс Expression когда вам нужно вычислять математические выражения из ненадежных источников. Вы можете определить свои собственные переменные и функции, которые хранятся в объекте. Попробуйте, это весело!
+Используйте класс Expression когда вам нужно вычислять математические или логические выражения из ненадежных источников. 
+Вы можете определить свои собственные переменные и функции, которые хранятся в объекте. Попробуйте, это весело!
 
 ## Методы
 
@@ -85,82 +100,13 @@ $m->last_error
 
 # Информация об авторах
 
-**Copyright 2005, Miles Kaufmann.**
+    **Copyright 2005, Miles Kaufmann**
+    **Copyright 2016, Jakub Jankiewicz**
 
-Version 1.0
+Version 2.0
 
-Оригинальный класс расположен тут: http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
+# Лицензия
 
-Этот репозиторий был клонирован по двум причинам:
-
-1. Чтобы разрешить загрузку кода без входа в phpclasses.org.
-2. Чтобы добавить небольшие улучшения в коде.
-# NAME
-    Expression - safely evaluate math and boolean expressions
-    
-# SYNOPSIS
-    <?
-      include('expression.php');
-      $e = new Expression();
-      // basic evaluation:
-      $result = $e->evaluate('2+2');
-      // supports: order of operation; parentheses; negation; built-in functions
-      $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
-      // support of booleans
-      $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
-      // support for strings and match (regexes need to be like the ones from php)
-      $result = $e->evaluate('"foo,bar" =~ "/^([fo]+),(bar)$/"');
-      // previous call will create $0 for whole match match and $1,$2 for groups
-      $result = $e->evaluate('$2');
-      // create your own variables
-      $e->evaluate('a = e^(ln(pi))');
-      // or functions
-      $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
-      // and then use them
-      $result = $e->evaluate('3*f(42,a)');
-      // create external functions
-      $e->functions['foo'] = function() {
-        return "foo";
-      };
-      // and use it
-      $result = $e->evaluate('foo()');
-    ?>
-      
-# DESCRIPTION
-    Use the Expression class when you want to evaluate mathematical or boolean
-    expressions  from untrusted sources.  You can define your own variables and
-    functions, which are stored in the object.  Try it, it's fun!
-    
-    Based on http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
-    
-# METHODS
-    $e->evalute($expr)
-        Evaluates the expression and returns the result.  If an error occurs,
-        prints a warning and returns false.  If $expr is a function assignment,
-        returns true on success.
-    
-    $e->e($expr)
-        A synonym for $e->evaluate().
-    
-    $e->vars()
-        Returns an associative array of all user-defined variables and values.
-        
-    $e->funcs()
-        Returns an array of all user-defined functions.
-
-# PARAMETERS
-    $e->suppress_errors
-        Set to true to turn off warnings when evaluating expressions
-
-    $e->last_error
-        If the last evaluation failed, contains a string describing the error.
-        (Useful when suppress_errors is on).
-
-# AUTHORS INFORMATION
-    Copyright 2005, Miles Kaufmann.
-    Copyright 2016, Jakub Jankiewicz
-
-# LICENSE
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions are
     met:
