@@ -195,8 +195,13 @@ class Expression
         $ops_r = array('+' => 0, '-' => 0, '*' => 0, '/' => 0, '%' => 0, '^' => 1, '>' => 0,
             '<' => 0, '>=' => 0, '<=' => 0, '==' => 0, '!=' => 0, '=~' => 0,
             '&&' => 0, '||' => 0, '!' => 0); // right-associative operator?
-        $ops_p = array('+' => 4, '-' => 4, '*' => 4, '/' => 4, '_' => 4, '%' => 4, '^' => 5, '>' => 2, '<' => 2,
-            '>=' => 2, '<=' => 2, '==' => 2, '!=' => 2, '=~' => 2, '&&' => 1, '||' => 1, '!' => 5); // operator precedence
+        $ops_p = array(
+            '&&' => 1, '||' => 1,
+            '>' => 2, '<' => 2, '>=' => 2, '<=' => 2, '==' => 2, '!=' => 2, '=~' => 2,
+            '+' => 3, '-' => 3,
+            '*' => 4, '/' => 4, '_' => 4, '%' => 4,
+            '^' => 5, '!' => 5,
+        ); // operator precedence
 
         $expecting_op = false; // we use this in syntax-checking the expression
         // and determining when a - is a negation

@@ -269,6 +269,22 @@ class ExpressionTest extends TestCase
         }
     }
 
+    public function testPriorityOperands()
+    {
+        $data = [
+            '2+2*2' => 6,
+            '2-2+2*2+2/2*-1+2' => 5,
+            '2+1 > 2+2' => false,
+            '2+1 < 2+2' => true,
+            '2+2*2-2/2 >= 2*2+-2/2*2' => true,
+        ];
+
+        $expr = new Expression();
+        foreach ($data as $formula => $result) {
+            $this->assertEquals($expr->evaluate($formula), $result);
+        }
+    }
+
     // -------------------------------------------------------------------------
     public function testBug_1()
     {
