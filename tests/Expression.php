@@ -89,6 +89,20 @@ class ExpressionTest extends TestCase {
             $this->assertEquals($result, $value);
         }
     }
+	// -------------------------------------------------------------------------
+	public function testPriorityOperands() {
+        $data = [
+            '2+2*2' => 6,
+            '2-2+2*2+2/2*-1+2' => 5,
+            '2+1 > 2+2' => false,
+            '2+1 < 2+2' => true,
+            '2+2*2-2/2 >= 2*2+-2/2*2' => true,
+        ];
+        $expr = new Expression();
+        foreach ($data as $formula => $result) {
+            $this->assertEquals($expr->evaluate($formula), $result);
+        }
+    }
     // -------------------------------------------------------------------------
     public function testKeywords() {
         $expressions = array("1 == true", "true == true", "false == false",
@@ -162,6 +176,18 @@ class ExpressionTest extends TestCase {
             $expr->evaluate($expression);
             $this->assertEquals($expr->evaluate($object['var']), $object['value']);
         }
+    }
+	// -------------------------------------------------------------------------
+    public function testVariables() {
+        $expr = new Expression();
+        $expr->v += [
+            'f_price' => 500,
+            'f_width' => 500,
+            'f_turndown_0_2_f_count' => 2,
+            'f_length_metal_f_length' => 1400
+        ];
+        $formula = 'f_price*(f_width+f_turndown_0_2_f_count*10)*f_length_metal_f_length/1000000';
+        $this->assertEquals($expr->evaluate($formula), 364);
     }
     // -------------------------------------------------------------------------
     public function testJSON() {
