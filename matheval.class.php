@@ -88,29 +88,29 @@ LICENSE
 
 class EvalMath {
 
-    var $suppress_errors = false;
-    var $last_error = null;
+    public $suppress_errors = false;
+    public $last_error = null;
     
-    var $v = array('e'=>2.71,'pi'=>3.14); // variables (and constants)
-    var $f = array(); // user-defined functions
-    var $vb = array('e', 'pi'); // constants
-    var $fb = array(  // built-in functions
+    public $v = array('e'=>2.71,'pi'=>3.14); // variables (and constants)
+    public $f = array(); // user-defined functions
+    public $vb = array('e', 'pi'); // constants
+    public $fb = array(  // built-in functions
         'sin','sinh','arcsin','asin','arcsinh','asinh',
         'cos','cosh','arccos','acos','arccosh','acosh',
         'tan','tanh','arctan','atan','arctanh','atanh',
         'sqrt','abs','ln','log');
     
-    function EvalMath() {
+    public function __construct() {
         // make the variables a little more accurate
         $this->v['pi'] = pi();
         $this->v['e'] = exp(1);
     }
     
-    function e($expr) {
+    public function e($expr) {
         return $this->evaluate($expr);
     }
     
-    function evaluate($expr) {
+    public function evaluate($expr) {
         $this->last_error = null;
         $expr = trim($expr);
         if (substr($expr, -1, 1) == ';') $expr = substr($expr, 0, strlen($expr)-1); // strip semicolons at the end
@@ -150,14 +150,14 @@ class EvalMath {
         }
     }
     
-    function vars() {
+    public function vars() {
         $output = $this->v;
         unset($output['pi']);
         unset($output['e']);
         return $output;
     }
     
-    function funcs() {
+    public function funcs() {
         $output = array();
         foreach ($this->f as $fnn=>$dat)
             $output[] = $fnn . '(' . implode(',', $dat['args']) . ')';
@@ -167,7 +167,7 @@ class EvalMath {
     //===================== HERE BE INTERNAL METHODS ====================\\
 
     // Convert infix to postfix notation
-    function nfx($expr) {
+    protected function nfx($expr) {
     
         $index = 0;
         $stack = new EvalMathStack;
@@ -293,7 +293,7 @@ class EvalMath {
     }
 
     // evaluate postfix notation
-    function pfx($tokens, $vars = array()) {
+    protected function pfx($tokens, $vars = array()) {
         
         if ($tokens == false) return false;
     
@@ -355,7 +355,7 @@ class EvalMath {
     }
     
     // trigger an error, but nicely, if need be
-    function trigger($msg) {
+    protected function trigger($msg) {
         $this->last_error = $msg;
         if (!$this->suppress_errors) trigger_error($msg, E_USER_WARNING);
         return false;
@@ -365,15 +365,15 @@ class EvalMath {
 // for internal use
 class EvalMathStack {
 
-    var $stack = array();
-    var $count = 0;
+    public $stack = array();
+    public $count = 0;
     
-    function push($val) {
+    public function push($val) {
         $this->stack[$this->count] = $val;
         $this->count++;
     }
     
-    function pop() {
+    public function pop() {
         if ($this->count > 0) {
             $this->count--;
             return $this->stack[$this->count];
@@ -381,10 +381,9 @@ class EvalMathStack {
         return null;
     }
     
-    function last($n=1) {
+    public function last($n=1) {
         if (isset($this->stack[$this->count-$n])) {
           return $this->stack[$this->count-$n];
         }
-        return;
     }
 }
