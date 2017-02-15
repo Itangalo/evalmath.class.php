@@ -3,15 +3,15 @@
 /*
 ================================================================================
 
-Expression - PHP Class to safely evaluate math expressions
-Copyright (C) 2005 Miles Kaufmann <http://www.twmagic.com/>
-Copyright (C) 2016 Jakub Jankiewicz <http://jcubic.pl/>
+Expression - PHP Class to safely evaluate math and boolean expressions
+Copyright (C) 2005, Miles Kaufmann <http://www.twmagic.com/>
+Copyright (C) 2016, Jakub Jankiewicz <http://jcubic.pl/>
 
 ================================================================================
 
 NAME
     Expression - safely evaluate math and boolean expressions
-    
+
 SYNOPSIS
     <?
       include('expression.php');
@@ -20,19 +20,31 @@ SYNOPSIS
       $result = $e->evaluate('2+2');
       // supports: order of operation; parentheses; negation; built-in functions
       $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
+      // support of booleans
+      $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
+      // support for strings and match (regexes need to be like the ones from php)
+      $result = $e->evaluate('"foo,bar" =~ "/^([fo]+),(bar)$/"');
+      // previous call will create $0 for whole match match and $1,$2 for groups
+      $result = $e->evaluate('$2');
       // create your own variables
       $e->evaluate('a = e^(ln(pi))');
       // or functions
       $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
       // and then use them
       $result = $e->evaluate('3*f(42,a)');
+      // create external functions
+      $e->functions['foo'] = function() {
+        return "foo";
+      };
+      // and use it
+      $result = $e->evaluate('foo()');
     ?>
-      
+
 DESCRIPTION
     Use the Expressoion class when you want to evaluate mathematical or boolean
     expressions  from untrusted sources.  You can define your own variables and
     functions, which are stored in the object.  Try it, it's fun!
-    
+
     Based on http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
 
 METHODS
@@ -40,13 +52,13 @@ METHODS
         Evaluates the expression and returns the result.  If an error occurs,
         prints a warning and returns false.  If $expr is a function assignment,
         returns true on success.
-    
+
     $e->e($expr)
         A synonym for $e->evaluate().
-    
+
     $e->vars()
         Returns an associative array of all user-defined variables and values.
-        
+
     $e->funcs()
         Returns an array of all user-defined functions.
 
@@ -59,14 +71,14 @@ PARAMETERS
         (Useful when suppress_errors is on).
 
 AUTHORS INFORMATION
-    Copyright 2005, Miles Kaufmann.
-    Copyright 2016, Jakub Jankiewicz
+    Copyright (c) 2005, Miles Kaufmann
+    Copyright (c) 2016, Jakub Jankiewicz
 
 LICENSE
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions are
     met:
-    
+
     1   Redistributions of source code must retain the above copyright
         notice, this list of conditions and the following disclaimer.
     2.  Redistributions in binary form must reproduce the above copyright
@@ -75,7 +87,7 @@ LICENSE
     3.  The name of the author may not be used to endorse or promote
         products derived from this software without specific prior written
         permission.
-    
+
     THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
     IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -94,7 +106,7 @@ class Expression {
 
     var $suppress_errors = false;
     var $last_error = null;
-    
+
     var $v = array('e'=>2.71,'pi'=>3.14); // variables (and constants)
     var $f = array(); // user-defined functions
     var $vb = array('e', 'pi'); // constants
@@ -105,17 +117,17 @@ class Expression {
         'sqrt','abs','ln','log');
 
     var $functions = array(); // function defined outside of Expression as closures
-    
+
     function __construct() {
         // make the variables a little more accurate
         $this->v['pi'] = pi();
         $this->v['e'] = exp(1);
     }
-    
+
     function e($expr) {
         return $this->evaluate($expr);
     }
-    
+
     function evaluate($expr) {
         $this->last_error = null;
         $expr = trim($expr);
@@ -160,14 +172,14 @@ class Expression {
             return $this->pfx($this->nfx($expr)); // straight up evaluation, woo
         }
     }
-    
+
     function vars() {
         $output = $this->v;
         unset($output['pi']);
         unset($output['e']);
         return $output;
     }
-    
+
     function funcs() {
         $output = array();
         foreach ($this->f as $fnn=>$dat)
@@ -183,14 +195,14 @@ class Expression {
         $stack = new ExpressionStack;
         $output = array(); // postfix form of expression, to be passed to pfx()
         $expr = trim(strtolower($expr));
-        
+
         $ops   = array('+', '-', '*', '/', '^', '_', '%', '>', '<', '>=', '<=', '==', '!=', '=~', '&&', '||', '!');
         $ops_r = array('+'=>0,'-'=>0,'*'=>0,'/'=>0,'%'=>0,'^'=>1,'>'=>0,
                        '<'=>0,'>='=>0,'<='=>0,'=='=>0,'!='=>0,'=~'=>0,
-                       '&&'=>0,'||'=>0,'!'=>0); // right-associative operator?  
+                       '&&'=>0,'||'=>0,'!'=>0); // right-associative operator?
         $ops_p = array('+'=>4,'-'=>4,'*'=>4,'/'=>4,'_'=>4,'%'=>4,'^'=>5,'>'=>2,'<'=>2,
                        '>='=>2,'<='=>2,'=='=>2,'!='=>2,'=~'=>2,'&&'=>1,'||'=>1,'!'=>5); // operator precedence
-        
+
         $expecting_op = false; // we use this in syntax-checking the expression
                                // and determining when a - is a negation
 
@@ -219,7 +231,7 @@ class Expression {
                 if (!preg_match("/^\[(.*)\]$/", $match[1], $matches)) {
                     return $this->trigger("invalid array access");
                 }
-                $stack->push('[');                
+                $stack->push('[');
                 $stack->push($matches[1]);
                 $index += strlen($match[1]);
             //} elseif ($op == '!' && !$expecting_op) {
@@ -228,7 +240,7 @@ class Expression {
             } elseif ($op == '-' and !$expecting_op) { // is it a negation instead of a minus?
                 $stack->push('_'); // put a negation on the stack
                 $index++;
-            } elseif ($op == '_') { // we have to explicitly deny this, because it's legal on the stack 
+            } elseif ($op == '_') { // we have to explicitly deny this, because it's legal on the stack
                 return $this->trigger("illegal character '_'"); // but not in the input expression
             //===============
             } elseif (((in_array($op, $ops) or $ex) and $expecting_op) or in_array($op, $ops) and !$expecting_op) {
@@ -239,7 +251,7 @@ class Expression {
                 // heart of the algorithm:
                 while($stack->count > 0 and ($o2 = $stack->last()) and in_array($o2, $ops) and ($ops_r[$op] ? $ops_p[$op] < $ops_p[$o2] : $ops_p[$op] <= $ops_p[$o2])) {
                     $output[] = $stack->pop(); // pop stuff off the stack into the output
-                    
+
                 }
                 // many thanks: http://en.wikipedia.org/wiki/Reverse_Polish_notation#The_algorithm_in_detail
                 $stack->push($op); // finally put OUR operator onto the stack
@@ -276,8 +288,8 @@ class Expression {
                 $index++;
             //===============
             } elseif ($op == ',' and $expecting_op) { // did we just finish a function argument?
-                
-                while (($o2 = $stack->pop()) != '(') { 
+
+                while (($o2 = $stack->pop()) != '(') {
                     if (is_null($o2)) return $this->trigger("unexpected ','"); // oops, never had a (
                     else $output[] = $o2; // pop the argument expression stuff and push onto the output
                 }
@@ -319,14 +331,14 @@ class Expression {
                     $output[] = $val;
                     if (preg_match("/^([a-z]\w*)\($/", $stack->last(3))) {
                         $first_argument = true;
-                        while (($o2 = $stack->pop()) != '(') { 
+                        while (($o2 = $stack->pop()) != '(') {
                             if (is_null($o2)) return $this->trigger("unexpected error"); // oops, never had a (
                             else $output[] = $o2; // pop the argument expression stuff and push onto the output
                         }
                         // make sure there was a function
                         if (!preg_match("/^([a-z]\w*)\($/", $stack->last(2), $matches))
                             return $this->trigger("unexpected error");
-                            
+
                         $stack->push($stack->pop()+1); // increment the argument count
                         $stack->push('('); // put the ( back on, we'll need to pop back to it again
                     }
@@ -347,11 +359,11 @@ class Expression {
                     break;
                 }
             }
-            while (substr($expr, $index, 1) == ' ') { // step the index past whitespace (pretty much turns whitespace 
+            while (substr($expr, $index, 1) == ' ') { // step the index past whitespace (pretty much turns whitespace
                 $index++;                             // into implicit multiplication if no operator is there)
             }
-        
-        } 
+
+        }
         while (!is_null($op = $stack->pop())) { // pop everything off the stack and push onto output
             if ($op == '(') return $this->trigger("expecting ')'"); // if there are (s on the stack, ()s were unbalanced
             $output[] = $op;
@@ -361,7 +373,7 @@ class Expression {
 
     // evaluate postfix notation
     function pfx($tokens, $vars = array()) {
-        
+
         if ($tokens == false) return false;
         $stack = new ExpressionStack();
         foreach ($tokens as $token) { // nice and easy
@@ -412,7 +424,7 @@ class Expression {
                         break;
                     case '=~':
                         $value = @preg_match($op2, $op1, $match);
-                        
+
                         if (!is_int($value)) {
                             return $this->trigger("Invalid regex " . json_encode($op2));
                         }
@@ -509,7 +521,7 @@ class Expression {
         if ($stack->count != 1) return $this->trigger("internal error");
         return $stack->pop();
     }
-    
+
     // trigger an error, but nicely, if need be
     function trigger($msg) {
         $this->last_error = $msg;
@@ -523,12 +535,12 @@ class ExpressionStack {
 
     var $stack = array();
     var $count = 0;
-    
+
     function push($val) {
         $this->stack[$this->count] = $val;
         $this->count++;
     }
-    
+
     function pop() {
         if ($this->count > 0) {
             $this->count--;
@@ -536,11 +548,11 @@ class ExpressionStack {
         }
         return null;
     }
-    
+
     function empty() {
         return empty($this->stack);
     }
-    
+
     function last($n=1) {
         if (isset($this->stack[$this->count-$n])) {
           return $this->stack[$this->count-$n];
