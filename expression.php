@@ -23,7 +23,7 @@ SYNOPSIS
       // support of booleans
       $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
       // support for strings and match (regexes need to be like the ones from php)
-      $result = $e->evaluate('"foo,bar" =~ "/^([fo]+),(bar)$/"');
+      $result = $e->evaluate('"Foo,Bar" =~ /^([fo]+),(bar)$/i');
       // previous call will create $0 for whole match match and $1,$2 for groups
       $result = $e->evaluate('$2');
       // create your own variables
@@ -194,7 +194,7 @@ class Expression {
         $index = 0;
         $stack = new ExpressionStack;
         $output = array(); // postfix form of expression, to be passed to pfx()
-        $expr = trim(strtolower($expr));
+        $expr = trim($expr);
 
         $ops   = array('+', '-', '*', '/', '^', '_', '%', '>', '<', '>=', '<=', '==', '!=', '=~', '&&', '||', '!');
         $ops_r = array('+'=>0,'-'=>0,'*'=>0,'/'=>0,'%'=>0,'^'=>1,'>'=>0,
@@ -212,20 +212,34 @@ class Expression {
         }
         */
         $first_argument = false;
+        $i = 0;
+        $matcher = false;
         while(1) { // 1 Infinite Loop ;)
-            $op = substr($expr, $index, 2); // get the first two characters at the current index
+            $op = substr(substr($expr, $index), 0, 2); // get the first two characters at the current index
             if (preg_match("/^[+\-*\/^_\"<>=%(){\[!~,](?!=|~)/", $op) || preg_match("/\w/", $op)) {
                 // fix $op if it should have one character
                 $op = substr($expr, $index, 1);
             }
             $single_str = '(?<!\\\\)"(?:(?:(?<!\\\\)(?:\\\\{2})*\\\\)"|[^"])*(?<![^\\\\]\\\\)"';
             $double_str = "(?<!\\\\)'(?:(?:(?<!\\\\)(?:\\\\{2})*\\\\)'|[^'])*(?<![^\\\\]\\\\)'";
+            $regex = "(?<!\\\\)\/(?:[^\/]|\\\\\/)+\/[imsxUXJ]*";
             $json = '[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]';
             $number = '[\d.]+e\d+|\d+(?:\.\d*)?|\.\d+';
             $name = '[a-z]\w*\(?|\\$\w+';
             $parenthesis = '\\(';
             // find out if we're currently at the beginning of a number/string/object/array/variable/function/parenthesis/operand
-            $ex = preg_match("%^($single_str|$double_str|$json|$name|$number|$parenthesis)%", substr($expr, $index), $match);
+            $ex = preg_match("%^($single_str|$double_str|$json|$name|$regex|$number|$parenthesis)%", substr($expr, $index), $match);
+            /*
+            if ($i++ > 1000) {
+                break;
+            }
+            if ($ex) {
+                print_r($match);
+            } else {
+                echo json_encode($op) . "\n";
+            }
+            echo $index . "\n";
+            */
             //===============
             if ($op == '[' && $expecting_op && $ex) {
                 if (!preg_match("/^\[(.*)\]$/", $match[1], $matches)) {
@@ -234,20 +248,24 @@ class Expression {
                 $stack->push('[');
                 $stack->push($matches[1]);
                 $index += strlen($match[1]);
-            //} elseif ($op == '!' && !$expecting_op) {
-            //    $stack->push('!'); // put a negation on the stack
-            //    $index++;
+                //} elseif ($op == '!' && !$expecting_op) {
+                //    $stack->push('!'); // put a negation on the stack
+                //    $index++;
             } elseif ($op == '-' and !$expecting_op) { // is it a negation instead of a minus?
                 $stack->push('_'); // put a negation on the stack
                 $index++;
             } elseif ($op == '_') { // we have to explicitly deny this, because it's legal on the stack
                 return $this->trigger("illegal character '_'"); // but not in the input expression
+            } elseif ($ex && $matcher && preg_match("%^" . $regex . "$%", $match[1])) {
+                $stack->push('"' . $match[1] . '"');
+                $index += strlen($match[1]);
+                $op = null;
+                $expecting_op = false;
+                $matcher = false;
+                break;
             //===============
-            } elseif (((in_array($op, $ops) or $ex) and $expecting_op) or in_array($op, $ops) and !$expecting_op) {
-                // are we putting an operator on the stack?
-                if ($ex) { // are we expecting an operator but have a number/variable/function/opening parethesis?
-                    $op = '*'; $index--; // it's an implicit multiplication
-                }
+            } elseif (((in_array($op, $ops) or $ex) and $expecting_op) or in_array($op, $ops) and !$expecting_op or
+                      (!$matcher && $ex && preg_match("%^" . $regex . "$%", $match[1]))) {
                 // heart of the algorithm:
                 while($stack->count > 0 and ($o2 = $stack->last()) and in_array($o2, $ops) and ($ops_r[$op] ? $ops_p[$op] < $ops_p[$o2] : $ops_p[$op] <= $ops_p[$o2])) {
                     $output[] = $stack->pop(); // pop stuff off the stack into the output
@@ -255,11 +273,9 @@ class Expression {
                 }
                 // many thanks: http://en.wikipedia.org/wiki/Reverse_Polish_notation#The_algorithm_in_detail
                 $stack->push($op); // finally put OUR operator onto the stack
-                $index++;
-                if (strlen($op) == 2) {
-                    $index++;
-                }
+                $index += strlen($op);
                 $expecting_op = false;
+                $matcher = $op == '=~';
             //===============
             } elseif ($op == ')' and $expecting_op || !$ex) { // ready to close a parenthesis?
                 while (($o2 = $stack->pop()) != '(') { // pop off the stack back to the last (

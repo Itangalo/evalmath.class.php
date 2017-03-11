@@ -1,6 +1,6 @@
 # NAME
     Expression - safely evaluate math and boolean expressions
-    
+
 # SYNOPSIS
     <?
       include('expression.php');
@@ -12,7 +12,7 @@
       // support of booleans
       $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
       // support for strings and match (regexes need to be like the ones from php)
-      $result = $e->evaluate('"foo,bar" =~ "/^([fo]+),(bar)$/"');
+      $result = $e->evaluate('"Foo,Bar" =~ /^([fo]+),(bar)$/i');
       // previous call will create $0 for whole match match and $1,$2 for groups
       $result = $e->evaluate('$2');
       // create your own variables
@@ -28,26 +28,26 @@
       // and use it
       $result = $e->evaluate('foo()');
     ?>
-      
+
 # DESCRIPTION
     Use the Expression class when you want to evaluate mathematical or boolean
     expressions  from untrusted sources.  You can define your own variables and
     functions, which are stored in the object.  Try it, it's fun!
-    
+
     Based on http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
-    
+
 # METHODS
     $e->evalute($expr)
         Evaluates the expression and returns the result.  If an error occurs,
         prints a warning and returns false.  If $expr is a function assignment,
         returns true on success.
-    
+
     $e->e($expr)
         A synonym for $e->evaluate().
-    
+
     $e->vars()
         Returns an associative array of all user-defined variables and values.
-        
+
     $e->funcs()
         Returns an array of all user-defined functions.
 
@@ -67,7 +67,7 @@
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions are
     met:
-    
+
     1   Redistributions of source code must retain the above copyright
         notice, this list of conditions and the following disclaimer.
     2.  Redistributions in binary form must reproduce the above copyright
@@ -76,7 +76,7 @@
     3.  The name of the author may not be used to endorse or promote
         products derived from this software without specific prior written
         permission.
-    
+
     THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
     IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
