@@ -22,7 +22,7 @@ SYNOPSIS
       $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
       // support of booleans
       $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
-      // support for strings and match (regexes need to be like the ones from php)
+      // support for strings and match (regexes can be like in php or like in javascript)
       $result = $e->evaluate('"Foo,Bar" =~ /^([fo]+),(bar)$/i');
       // previous call will create $0 for whole match match and $1,$2 for groups
       $result = $e->evaluate('$2');
