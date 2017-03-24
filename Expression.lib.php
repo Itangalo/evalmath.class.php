@@ -211,7 +211,7 @@ class Expression
             return $this->trigger("illegal character '{$matches[0]}'");
         }
         */
-        $first_argument = false;
+        $begin_argument = false;
         while (1) { // 1 Infinite Loop ;)
             $op = substr($expr, $index, 2); // get the first two characters at the current index
             if (preg_match("/^[+\-*\/^_\"<>=%(){\[!~,](?!=|~)/", $op) || preg_match("/\w/", $op)) {
@@ -297,19 +297,20 @@ class Expression
                 // make sure there was a function
                 if (!preg_match("/^([a-z]\w*)\($/", $stack->last(2), $matches))
                     return $this->trigger("unexpected ','");
-                if ($first_argument) {
-                    $first_argument = false;
-                } else {
-                    $stack->push($stack->pop() + 1); // increment the argument count
-                }
                 $stack->push('('); // put the ( back on, we'll need to pop back to it again
                 $index++;
                 $expecting_op = false;
+                $begin_argument = true;
                 //===============
             } elseif ($op == '(' and !$expecting_op) {
+                if ($begin_argument) {
+                    $begin_argument = false;
+                    if (!$stack->incrementArgument()) {
+                        $this->trigger("unexpected '('");
+                    }
+                }
                 $stack->push('('); // that was easy
                 $index++;
-//                $allow_neg = true;
                 //===============
             } elseif ($ex and !$expecting_op) { // do we now have a function/variable/number?
                 $expecting_op = true;
@@ -321,9 +322,15 @@ class Expression
                         array_key_exists($matches[1], $this->f) or
                         array_key_exists($matches[1], $this->functions)
                     ) { // it's a func
+                        if ($begin_argument) {
+                            if (!$stack->incrementArgument()) {
+                                $this->trigger("unexpected '('");
+                            }
+                        }
                         $stack->push($val);
                         $stack->push(0);
                         $stack->push('(');
+                        $begin_argument = true;
                         $expecting_op = false;
                     } else { // it's a var w/ implicit multiplication
                         $val = $matches[1];
@@ -332,17 +339,13 @@ class Expression
                 } else { // it's a plain old var or num
                     $output[] = $val;
                     if (preg_match("/^([a-z]\w*)\($/", $stack->last(3))) {
-                        $first_argument = true;
-                        while (($o2 = $stack->pop()) != '(') {
-                            if (is_null($o2)) return $this->trigger("unexpected error"); // oops, never had a (
-                            else $output[] = $o2; // pop the argument expression stuff and push onto the output
-                        }
-                        // make sure there was a function
-                        if (!preg_match("/^([a-z]\w*)\($/", $stack->last(2), $matches))
-                            return $this->trigger("unexpected error");
+                        if ($begin_argument) {
+                            $begin_argument = false;
 
-                        $stack->push($stack->pop() + 1); // increment the argument count
-                        $stack->push('('); // put the ( back on, we'll need to pop back to it again
+                            if (!$stack->incrementArgument()) {
+                                $this->trigger("unexpected error");
+                            }
+                        }
                     }
                 }
                 $index += strlen($val);
@@ -572,6 +575,26 @@ class ExpressionStack
             return $this->stack[$this->count];
         }
         return null;
+    }
+
+    function incrementArgument()
+    {
+        while (($o2 = $this->pop()) != '(') {
+            if (is_null($o2)) {
+                return false; // oops, never had a (
+            } else {
+                $output[] = $o2; // pop the argument expression stuff and push onto the output
+            }
+        }
+        // make sure there was a function
+        if (!preg_match("/^([a-z]\w*)\($/", $this->last(2), $matches)) {
+            return false;
+        }
+
+        $this->push($this->pop() + 1); // increment the argument count
+        $this->push('('); // put the ( back on, we'll need to pop back to it again
+
+        return true;
     }
 
     function isEmpty()

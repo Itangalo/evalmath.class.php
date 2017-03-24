@@ -299,4 +299,39 @@ class ExpressionTest extends TestCase
         $this->assertEquals($expr->evaluate($formula), 364);
     }
     // */
+
+    public function testFormulaWithBrackets()
+    {
+        $e = new Expression();
+        $e->suppress_errors = true;
+        $e->functions = [
+            'min' => function ($v1, $v2) {
+                return min($v1, $v2);
+            },
+            'max' => function ($v1, $v2) {
+                return max($v1, $v2);
+            },
+        ];
+//        $formula = 'max(2,(2+2)*2)';
+
+        $data = [
+            'max(2,(2+2)*2)' => 8,
+            'max((2),(0))' => 2,
+            'max((2+2)*2,(3+2)*2)' => 10,
+            'max((4+2)*2,(3+2)*2)' => 12,
+            'min(max((2+2)*2,(3+2)*2), 1)' => 1,
+            'min(1, max(2,3))' => 1,
+            'min(1, max((4+2)*2,(3+2)*2))' => 1,
+            'min(max((2+2)*2,(3+2)*2), max((4+2)*2,(3+2)*2))' => 10,
+            'max( min((2+2)*2,(3+2)*2), min((4+2)*2,(3+2)*2) )' => 10,
+            '1 + max( min(2-(2+2)*2,(3+2)*2), min((4+2)*2,(3+2)*2) ) - 2' => 9,
+            'max(1,max(2,max(3,4)))' => 4,
+            'max( min(1 + 2, 4), 5)' => 5,
+            'min(2,(2+2)*2)' => 2,
+        ];
+
+        foreach ($data as $formula => $result) {
+            $this->assertEquals($e->evaluate($formula), $result);
+        }
+    }
 }
