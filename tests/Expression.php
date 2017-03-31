@@ -305,6 +305,41 @@ class ExpressionTest extends TestCase
         $e = new Expression();
         $e->suppress_errors = true;
         $e->functions = [
+            'p1' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p1;
+            },
+            'p2' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p2;
+            },
+            'p3' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p3;
+            },
+            'p4' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p4;
+            },
+            'p5' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p5;
+            },
+        ];
+
+        $data = [
+            'p1(1, 2, 3, 4, 5)' => 1,
+            'p2(1, 2, 3, 4, 5)' => 2,
+            'p3(1, 2, 3, 4, 5)' => 3,
+            'p4(1, 2, 3, 4, 5)' => 4,
+            'p5(1, 2, 3, 4, 5)' => 5,
+        ];
+
+        foreach ($data as $formula => $result) {
+            $this->assertEquals($e->evaluate($formula), $result);
+        }
+    }
+
+    public function testFunctionOrderParameters()
+    {
+        $e = new Expression();
+        $e->suppress_errors = true;
+        $e->functions = [
             'min' => function ($v1, $v2) {
                 return min($v1, $v2);
             },
@@ -312,7 +347,6 @@ class ExpressionTest extends TestCase
                 return max($v1, $v2);
             },
         ];
-//        $formula = 'max(2,(2+2)*2)';
 
         $data = [
             'max(2,(2+2)*2)' => 8,
@@ -334,4 +368,5 @@ class ExpressionTest extends TestCase
             $this->assertEquals($e->evaluate($formula), $result);
         }
     }
+
 }

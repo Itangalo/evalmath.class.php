@@ -498,7 +498,7 @@ class Expression
                         }
                         $args[] = $stack->pop();
                     }
-                    $stack->push($reflection->invokeArgs($args));
+                    $stack->push($reflection->invokeArgs(array_reverse($args)));
                 }
                 // if the token is a number or variable, push it on the stack
             } else {
