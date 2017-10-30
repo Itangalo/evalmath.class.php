@@ -15,9 +15,9 @@ class ExpressionTest extends TestCase
     }
     /*
     public function testTest() {
-        $expression = '"lorem" + (!false && "\n" || "")';
+        $expression = '2+2*2-2/2 >= 2*2+-2/2*2';
         $expr = new Expression();
-        echo json_encode($expr->evaluate($expression));
+        echo json_encode($expr->evaluate($expression)) ? "true" : "false";
     }
     */
     // -------------------------------------------------------------------------
@@ -101,9 +101,8 @@ class ExpressionTest extends TestCase
             $this->assertEquals($result, $value);
         }
     }
-
-	// -------------------------------------------------------------------------
-	public function testPriorityOperands() {
+    // -------------------------------------------------------------------------
+    public function testPriorityOperands() {
         $data = [
             '2+2*2' => 6,
             '2-2+2*2+2/2*-1+2' => 5,
@@ -159,23 +158,22 @@ class ExpressionTest extends TestCase
             $result = $expr->evaluate($expression);
             $this->assertEquals($result, $value);
         }
-        $result = $expr->evaluate('"foo\"ba\\\\\\"r" =~ "/foo/"');
+        $result = $expr->evaluate('"foo\"ba\\\\\\"r" =~ /foo/');
         $this->assertEquals((boolean)$result, true);
     }
 
     // -------------------------------------------------------------------------
-    public function testMatchers()
-    {
-        $expressions = array('"foobar" =~ "/([fo]+)/"' => 'foo',
-            '"foobar" =~ "/([0-9]+)/"' => null,
-            '"1020" =~ "/([0-9]+)/"' => '1020',
-            '"1020" =~ "/([a-z]+)/"' => null);
+    public function testMatchers() {
+        $expressions = array('"Foobar" =~ /([fo]+)/i' => 'Foo',
+                             '"foobar" =~ /([0-9]+)/' => null,
+                             '"1020" =~ /([0-9]+)/'=> '1020',
+                             '"1020" =~ /([a-z]+)/' => null);
 
         foreach ($expressions as $expression => $group) {
             $expr = new Expression();
             $result = $expr->evaluate($expression);
             if ($group == null) {
-                $this->assertEquals((boolean)$result, $group != null);
+                $this->assertEquals((boolean)$result, false);
             }
             if ($group != null) {
                 $this->assertEquals($expr->evaluate('$1'), $group);
@@ -199,8 +197,7 @@ class ExpressionTest extends TestCase
             $this->assertEquals($expr->evaluate($object['var']), $object['value']);
         }
     }
-
-	// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     public function testVariables() {
         $expr = new Expression();
         $expr->v += [
