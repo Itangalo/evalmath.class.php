@@ -102,6 +102,20 @@ class ExpressionTest extends TestCase
         }
     }
 
+	// -------------------------------------------------------------------------
+	public function testPriorityOperands() {
+        $data = [
+            '2+2*2' => 6,
+            '2-2+2*2+2/2*-1+2' => 5,
+            '2+1 > 2+2' => false,
+            '2+1 < 2+2' => true,
+            '2+2*2-2/2 >= 2*2+-2/2*2' => true,
+        ];
+        $expr = new Expression();
+        foreach ($data as $formula => $result) {
+            $this->assertEquals($expr->evaluate($formula), $result);
+        }
+    }
     // -------------------------------------------------------------------------
     public function testKeywords()
     {
@@ -186,6 +200,18 @@ class ExpressionTest extends TestCase
         }
     }
 
+	// -------------------------------------------------------------------------
+    public function testVariables() {
+        $expr = new Expression();
+        $expr->v += [
+            'f_price' => 500,
+            'f_width' => 500,
+            'f_turndown_0_2_f_count' => 2,
+            'f_length_metal_f_length' => 1400
+        ];
+        $formula = 'f_price*(f_width+f_turndown_0_2_f_count*10)*f_length_metal_f_length/1000000';
+        $this->assertEquals($expr->evaluate($formula), 364);
+    }
     // -------------------------------------------------------------------------
     public function testJSON()
     {
@@ -266,22 +292,6 @@ class ExpressionTest extends TestCase
         $values = array(10 => true, 20 => true, 1 => false, 3 => false, 4 => true);
         foreach ($values as $number => $value) {
             $this->assertEquals((bool)$expr->evaluate("even($number)"), $value);
-        }
-    }
-
-    public function testPriorityOperands()
-    {
-        $data = [
-            '2+2*2' => 6,
-            '2-2+2*2+2/2*-1+2' => 5,
-            '2+1 > 2+2' => false,
-            '2+1 < 2+2' => true,
-            '2+2*2-2/2 >= 2*2+-2/2*2' => true,
-        ];
-
-        $expr = new Expression();
-        foreach ($data as $formula => $result) {
-            $this->assertEquals($expr->evaluate($formula), $result);
         }
     }
 

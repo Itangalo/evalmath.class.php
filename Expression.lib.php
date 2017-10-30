@@ -3,9 +3,9 @@
 /*
 ================================================================================
 
-Expression - PHP Class to safely evaluate math expressions
-Copyright (C) 2005 Miles Kaufmann <http://www.twmagic.com/>
-Copyright (C) 2016 Jakub Jankiewicz <http://jcubic.pl/>
+Expression - PHP Class to safely evaluate math and boolean expressions
+Copyright (C) 2005, Miles Kaufmann <http://www.twmagic.com/>
+Copyright (C) 2016, Jakub Jankiewicz <http://jcubic.pl/>
 
 ================================================================================
 
@@ -20,12 +20,24 @@ SYNOPSIS
       $result = $e->evaluate('2+2');
       // supports: order of operation; parentheses; negation; built-in functions
       $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
+      // support of booleans
+      $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
+      // support for strings and match (regexes need to be like the ones from php)
+      $result = $e->evaluate('"foo,bar" =~ "/^([fo]+),(bar)$/"');
+      // previous call will create $0 for whole match match and $1,$2 for groups
+      $result = $e->evaluate('$2');
       // create your own variables
       $e->evaluate('a = e^(ln(pi))');
       // or functions
       $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
       // and then use them
       $result = $e->evaluate('3*f(42,a)');
+      // create external functions
+      $e->functions['foo'] = function() {
+        return "foo";
+      };
+      // and use it
+      $result = $e->evaluate('foo()');
     ?>
 
 DESCRIPTION
@@ -59,8 +71,8 @@ PARAMETERS
         (Useful when suppress_errors is on).
 
 AUTHORS INFORMATION
-    Copyright 2005, Miles Kaufmann.
-    Copyright 2016, Jakub Jankiewicz
+    Copyright (c) 2005, Miles Kaufmann
+    Copyright (c) 2016, Jakub Jankiewicz
 
 LICENSE
     Redistribution and use in source and binary forms, with or without
@@ -191,17 +203,12 @@ class Expression
         $output = array(); // postfix form of expression, to be passed to pfx()
         $expr = trim(strtolower($expr));
 
-        $ops = array('+', '-', '*', '/', '^', '_', '%', '>', '<', '>=', '<=', '==', '!=', '=~', '&&', '||', '!');
-        $ops_r = array('+' => 0, '-' => 0, '*' => 0, '/' => 0, '%' => 0, '^' => 1, '>' => 0,
-            '<' => 0, '>=' => 0, '<=' => 0, '==' => 0, '!=' => 0, '=~' => 0,
-            '&&' => 0, '||' => 0, '!' => 0); // right-associative operator?
-        $ops_p = array(
-            '&&' => 1, '||' => 1,
-            '>' => 2, '<' => 2, '>=' => 2, '<=' => 2, '==' => 2, '!=' => 2, '=~' => 2,
-            '+' => 3, '-' => 3,
-            '*' => 4, '/' => 4, '_' => 4, '%' => 4,
-            '^' => 5, '!' => 5,
-        ); // operator precedence
+        $ops   = array('+', '-', '*', '/', '^', '_', '%', '>', '<', '>=', '<=', '==', '!=', '=~', '&&', '||', '!');
+        $ops_r = array('+'=>0,'-'=>0,'*'=>0,'/'=>0,'%'=>0,'^'=>1,'>'=>0,
+                       '<'=>0,'>='=>0,'<='=>0,'=='=>0,'!='=>0,'=~'=>0,
+                       '&&'=>0,'||'=>0,'!'=>0); // right-associative operator?
+        $ops_p = array('+'=>3,'-'=>3,'*'=>4,'/'=>4,'_'=>4,'%'=>4,'^'=>5,'>'=>2,'<'=>2,
+                       '>='=>2,'<='=>2,'=='=>2,'!='=>2,'=~'=>2,'&&'=>1,'||'=>1,'!'=>5); // operator precedence
 
         $expecting_op = false; // we use this in syntax-checking the expression
         // and determining when a - is a negation
@@ -240,7 +247,7 @@ class Expression
             } elseif ($op == '-' and !$expecting_op) { // is it a negation instead of a minus?
                 $stack->push('_'); // put a negation on the stack
                 $index++;
-            } elseif ($op == '_') { // we have to explicitly deny this, because it's legal on the stack 
+            } elseif ($op == '_') { // we have to explicitly deny this, because it's legal on the stack
                 return $this->trigger("illegal character '_'"); // but not in the input expression
                 //===============
             } elseif (((in_array($op, $ops) or $ex) and $expecting_op) or in_array($op, $ops) and !$expecting_op) {
@@ -339,11 +346,13 @@ class Expression
                 } else { // it's a plain old var or num
                     $output[] = $val;
                     if (preg_match("/^([a-z]\w*)\($/", $stack->last(3))) {
-                        if ($begin_argument) {
+
+                            if ($begin_argument) {
                             $begin_argument = false;
 
-                            if (!$stack->incrementArgument()) {
-                                $this->trigger("unexpected error");
+
+                        if (! $stack->incrementArgument()){
+                             $this->trigger("unexpected error");
                             }
                         }
                     }
@@ -364,7 +373,7 @@ class Expression
                     break;
                 }
             }
-            while (substr($expr, $index, 1) == ' ') { // step the index past whitespace (pretty much turns whitespace 
+            while (substr($expr, $index, 1) == ' ') { // step the index past whitespace (pretty much turns whitespace
                 $index++;                             // into implicit multiplication if no operator is there)
             }
 
@@ -378,8 +387,7 @@ class Expression
 
     // evaluate postfix notation
     function pfx($tokens, $vars = array())
-    {
-
+        {
         if ($tokens == false) return false;
         $stack = new ExpressionStack();
         foreach ($tokens as $token) { // nice and easy
@@ -540,14 +548,11 @@ class Expression
         if ($stack->count != 1) return $this->trigger("internal error");
         return $stack->pop();
     }
-
     /**
-     * trigger an error, but nicely, if need be
-     * @param string $msg
+    * trigger an error, but nicely, if need be
+    * @param string $msg
      * @return bool
-     */
-    function trigger($msg)
-    {
+     */function trigger($msg) {
         $this->last_error = $msg;
         if (!$this->suppress_errors) trigger_error($msg, E_USER_WARNING);
         return false;
