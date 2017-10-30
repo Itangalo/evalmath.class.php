@@ -5,12 +5,12 @@ use PHPUnit\Framework\TestCase;
 
 class ExpressionTest extends TestCase
 {
-    public function arrayTest($array)
+    public function arrayTest(array $array)
     {
         $expr = new Expression();
-        for ($i = 0; $i < count($array); $i++) {
+        foreach ($array as $i => $iValue) {
             $result = $expr->evaluate($array[$i]);
-            $this->assertEquals($result, eval("return " . $array[$i] . ";"));
+            $this->assertEquals($result, eval('return ' . $iValue . ';'));
         }
     }
     /*
@@ -23,11 +23,11 @@ class ExpressionTest extends TestCase
     // -------------------------------------------------------------------------
     public function testIntegers()
     {
-        $ints = array("100", "3124123", (string)PHP_INT_MAX, "-1000");
+        $ints = array('100', '3124123', (string)PHP_INT_MAX, '-1000');
         $expr = new Expression();
-        for ($i = 0; $i < count($ints); $i++) {
+        foreach ($ints as $i => $iValue) {
             $result = $expr->evaluate($ints[$i]);
-            $this->assertEquals($result, intval($ints[$i]));
+            $this->assertEquals($result, (int)$ints[$i]);
         }
 
     }
@@ -35,21 +35,21 @@ class ExpressionTest extends TestCase
     // -------------------------------------------------------------------------
     public function testFloats()
     {
-        $ints = array("10.10", "0.01", ".1", "1.", "-100.100", "1.10e2", "-0.10e10");
+        $ints = array('10.10', '0.01', '.1', '1.', '-100.100', '1.10e2', '-0.10e10');
         $expr = new Expression();
-        for ($i = 0; $i < count($ints); $i++) {
+        foreach ($ints as $i => $iValue) {
             $result = $expr->evaluate($ints[$i]);
-            $this->assertEquals($result, floatval($ints[$i]));
+            $this->assertEquals($result, (float)$ints[$i]);
         }
     }
 
     // -------------------------------------------------------------------------
     public function testAritmeticOperators()
     {
-        $expressions = array("20+20", "-20+20", "-0.1+0.1", ".1+.1", "1.+1.",
-            "0.1+(-0.1)", "20*20", "-20*20", "20*(-20)", "1.*1.",
-            ".1*.1", "20-20", "-20-20", "20/20", "-20/20", "10%20",
-            "10%9", "20%9");
+        $expressions = array('20+20', '-20+20', '-0.1+0.1', '.1+.1', '1.+1.',
+            '0.1+(-0.1)', '20*20', '-20*20', '20*(-20)', '1.*1.',
+            '.1*.1', '20-20', '-20-20', '20/20', '-20/20', '10%20',
+            '10%9', '20%9');
         $this->arrayTest($expressions);
         try {
             $expr = new Expression();
@@ -64,45 +64,47 @@ class ExpressionTest extends TestCase
     public function testSemicolon()
     {
         $expr = new Expression();
-        $result = $expr->evaluate("10+10;");
-        $this->assertEquals($result, "20");
+        $result = $expr->evaluate('10+10;');
+        $this->assertEquals($result, '20');
     }
 
     // -------------------------------------------------------------------------
     public function testBooleanComparators()
     {
-        $expressions = array("10 == 10", "10 == 20", "0.1 == 0.1", "0.1 == 0.2",
-            "10 != 10", "20 != 10", "0.1 != 0.1", "0.1 != 0.2",
-            "10 < 10", "20 < 10", "10 < 20", "0.1 < 0.2",
-            "0.2 < 0.1", "0.1 < 0.1", "10 > 10", "20 > 10",
-            "10 > 20", "0.1 > 0.2", "0.2 > 0.1", "0.1 > 0.1",
-            "10 <= 10", "20 <= 10", "10 <= 20", "0.1 <= 0.2",
-            "0.2 <= 0.1", "0.1 <= 0.1", "10 >= 10", "20 >= 10",
-            "10 >= 20", "0.1 >= 0.2", "0.2 >= 0.1", "0.1 >= 0.1");
+        $expressions = array('10 == 10', '10 == 20', '0.1 == 0.1', '0.1 == 0.2',
+            '10 != 10', '20 != 10', '0.1 != 0.1', '0.1 != 0.2',
+            '10 < 10', '20 < 10', '10 < 20', '0.1 < 0.2',
+            '0.2 < 0.1', '0.1 < 0.1', '10 > 10', '20 > 10',
+            '10 > 20', '0.1 > 0.2', '0.2 > 0.1', '0.1 > 0.1',
+            '10 <= 10', '20 <= 10', '10 <= 20', '0.1 <= 0.2',
+            '0.2 <= 0.1', '0.1 <= 0.1', '10 >= 10', '20 >= 10',
+            '10 >= 20', '0.1 >= 0.2', '0.2 >= 0.1', '0.1 >= 0.1');
         $this->arrayTest($expressions);
     }
 
     // -------------------------------------------------------------------------
     public function testBooleanOperators()
     {
-        $expressions = array("10 == 10 && 10 == 10", "10 != 10 && 10 != 10",
-            "10 == 20 && 10 == 10", "10 == 10 && 10 == 20",
-            "0.1 == 0.1 && 0.1 == 0.1", "0.1 == 0.2 && 0.1 == 0.1",
-            "0.1 == 0.1 && 0.1 == 0.2", "10 == 10 || 10 == 10",
-            "10 == 20 || 10 == 10", "10 == 10 || 10 == 20",
-            "0.1 == 0.1 || 0.1 == 0.1", "0.1 == 0.2 || 0.1 == 0.1",
-            "0.1 == 0.1 || 0.1 == 0.2");
+        $expressions = array('10 == 10 && 10 == 10', '10 != 10 && 10 != 10',
+            '10 == 20 && 10 == 10', '10 == 10 && 10 == 20',
+            '0.1 == 0.1 && 0.1 == 0.1', '0.1 == 0.2 && 0.1 == 0.1',
+            '0.1 == 0.1 && 0.1 == 0.2', '10 == 10 || 10 == 10',
+            '10 == 20 || 10 == 10', '10 == 10 || 10 == 20',
+            '0.1 == 0.1 || 0.1 == 0.1', '0.1 == 0.2 || 0.1 == 0.1',
+            '0.1 == 0.1 || 0.1 == 0.2');
         $this->arrayTest($expressions);
-        $expressions = array('("foo" == "foo") && "a" || "b"' => "a",
-            '("foo" == "bar") && "a" || "b"' => "b");
+        $expressions = array('("foo" == "foo") && "a" || "b"' => 'a',
+            '("foo" == "bar") && "a" || "b"' => 'b');
         $expr = new Expression();
         foreach ($expressions as $expression => $value) {
             $result = $expr->evaluate($expression);
             $this->assertEquals($result, $value);
         }
     }
+
     // -------------------------------------------------------------------------
-    public function testPriorityOperands() {
+    public function testPriorityOperands()
+    {
         $data = [
             '2+2*2' => 6,
             '2-2+2*2+2/2*-1+2' => 5,
@@ -115,21 +117,22 @@ class ExpressionTest extends TestCase
             $this->assertEquals($expr->evaluate($formula), $result);
         }
     }
+
     // -------------------------------------------------------------------------
     public function testKeywords()
     {
-        $expressions = array("1 == true", "true == true", "false == false",
-            "false != true", "null == null", "null != true");
+        $expressions = array('1 == true', 'true == true', 'false == false',
+            'false != true', 'null == null', 'null != true');
         $expr = new Expression();
         foreach ($expressions as $expression) {
             $result = $expr->evaluate($expression);
             $this->assertTrue((bool)$result);
         }
-        $expressions = array("foo = true" => true, "foo = false" => false, "foo = null" => null);
+        $expressions = array('foo = true' => true, 'foo = false' => false, 'foo = null' => null);
         foreach ($expressions as $expression => $value) {
             $expr = new Expression();
             $expr->evaluate($expression);
-            $result = $expr->evaluate("foo");
+            $result = $expr->evaluate('foo');
             $this->assertEquals($result, $value);
         }
 
@@ -138,7 +141,7 @@ class ExpressionTest extends TestCase
     // -------------------------------------------------------------------------
     public function testNegation()
     {
-        $expressions = array("!(10 == 10)", "!1", "!0");
+        $expressions = array('!(10 == 10)', '!1', '!0');
         $this->arrayTest($expressions);
     }
 
@@ -152,7 +155,7 @@ class ExpressionTest extends TestCase
             "'foo\\\\' == 'foo\\\\'");
         $this->arrayTest($expressions);
         $expressions = array('"foo" + "bar"' => 'foobar', "'foo' + 'bar'" => 'foobar',
-            '"foo\\"bar" + "baz"' => "foo\"barbaz");
+            '"foo\\"bar" + "baz"' => 'foo"barbaz');
         $expr = new Expression();
         foreach ($expressions as $expression => $value) {
             $result = $expr->evaluate($expression);
@@ -163,19 +166,20 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    public function testMatchers() {
+    public function testMatchers()
+    {
         $expressions = array('"Foobar" =~ /([fo]+)/i' => 'Foo',
-                             '"foobar" =~ /([0-9]+)/' => null,
-                             '"1020" =~ /([0-9]+)/'=> '1020',
-                             '"1020" =~ /([a-z]+)/' => null);
+            '"foobar" =~ /([0-9]+)/' => null,
+            '"1020" =~ /([0-9]+)/' => '1020',
+            '"1020" =~ /([a-z]+)/' => null);
 
         foreach ($expressions as $expression => $group) {
             $expr = new Expression();
             $result = $expr->evaluate($expression);
-            if ($group == null) {
+            if ($group === null) {
                 $this->assertEquals((boolean)$result, false);
             }
-            if ($group != null) {
+            if ($group !== null) {
                 $this->assertEquals($expr->evaluate('$1'), $group);
             }
         }
@@ -197,8 +201,10 @@ class ExpressionTest extends TestCase
             $this->assertEquals($expr->evaluate($object['var']), $object['value']);
         }
     }
+
     // -------------------------------------------------------------------------
-    public function testVariables() {
+    public function testVariables()
+    {
         $expr = new Expression();
         $expr->v += [
             'f_price' => 500,
@@ -209,16 +215,17 @@ class ExpressionTest extends TestCase
         $formula = 'f_price*(f_width+f_turndown_0_2_f_count*10)*f_length_metal_f_length/1000000';
         $this->assertEquals($expr->evaluate($formula), 364);
     }
+
     // -------------------------------------------------------------------------
     public function testJSON()
     {
         $expressions = array(
-            array("foo" => "bar"),
-            array('foo\\"bar' => "baz"),
-            array("foo}" => "bar"),
+            array('foo' => 'bar'),
+            array('foo\\"bar' => 'baz'),
+            array('foo}' => 'bar'),
             array(10, 20, 30, 40),
-            array(10, "]", 30),
-            array(10, array("foo" => "bar"), 30)
+            array(10, ']', 30),
+            array(10, array('foo' => 'bar'), 30)
         );
         $expr = new Expression();
         foreach ($expressions as $expression) {
@@ -237,7 +244,7 @@ class ExpressionTest extends TestCase
             $this->assertEquals((bool)$result, $value);
         }
         $expressions = array(
-            '{"foo":"bar"}["foo"]' => "bar",
+            '{"foo":"bar"}["foo"]' => 'bar',
             '[10,20][0]' => 10
         );
         foreach ($expressions as $expression => $value) {
@@ -252,28 +259,29 @@ class ExpressionTest extends TestCase
     // -------------------------------------------------------------------------
     public function testCustomFunctions()
     {
-        $functions = array('square(x) = x*x' => array(
-            'square(10)' => 100,
-            'square(10) == 100' => 1
-        ),
-            'string() = "foo"' => array(
+        $functions = [
+            'square(x) = x*x' => [
+                'square(10)' => 100,
+                'square(10) == 100' => 1
+            ],
+            'string() = "foo"' => [
                 'string() =~ "/[fo]+/"' => 1,
                 'string() == "foo"' => 1,
                 'string() != "bar"' => 1
-            ),
-            'number(x) = x =~ "/^[0-9]+$/"' => array(
+            ],
+            'number(x) = x =~ "/^[0-9]+$/"' => [
                 'number("10")' => 1,
                 'number("10foo")' => 0
-            ),
-            'logic(x, y) = x == "foo" || x == "bar"' => array(
+            ],
+            'logic(x, y) = x == "foo" || x == "bar"' => [
                 'logic( "foo", 1 )' => 1,
                 'logic("bar", 1)' => 1,
                 'logic("lorem", 1)' => 0
-            ));
+            ]];
         foreach ($functions as $function => $object) {
             $expr = new Expression();
             $expr->evaluate($function);
-            foreach ($object as $fn => $value) {
+            foreach ((array)$object as $fn => $value) {
                 $this->assertEquals($expr->evaluate($fn), $value);
             }
         }
@@ -284,7 +292,7 @@ class ExpressionTest extends TestCase
     {
         $expr = new Expression();
         $expr->functions['even'] = function ($a) {
-            return $a % 2 == 0;
+            return $a % 2 === 0;
         };
         $values = array(10 => true, 20 => true, 1 => false, 3 => false, 4 => true);
         foreach ($values as $number => $value) {
@@ -305,6 +313,7 @@ class ExpressionTest extends TestCase
         $formula = 'f_price*(f_width+f_turndown_0_2_f_count*10)*f_length_metal_f_length/1000000';
         $this->assertEquals($expr->evaluate($formula), 364);
     }
+
     // */
 
     public function testFormulaWithBrackets()
