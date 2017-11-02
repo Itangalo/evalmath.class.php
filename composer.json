@@ -1,9 +1,19 @@
 {
-  "name": "optimistex/yii2-expression",
+  "name": "optimistex/math-expression",
+  "version": "2.1.0",
+  "type": "library",
   "description": "Taken from http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann",
-  "type": "yii2-extension",
-  "version": "2.0.1.3",
+  "keywords": [
+    "math",
+    "expression",
+    "math expression",
+    "module"
+  ],
+  "homepage": "https://github.com/optimistex/math-expression",
   "license": "MIT",
+  "support": {
+    "issues": "https://github.com/optimistex/math-expression/issues"
+  },
   "authors": [
     {
       "name": "optimistex",
@@ -15,11 +25,18 @@
   ],
   "autoload": {
     "classmap": [
-      "Expression.lib.php"
+      "expression.php"
     ],
     "psr-4": {
       "optimistex\\expression\\": ""
     }
   },
-  "require": {}
+  "extra": {
+    "branch-alias": {
+      "dev-master": "2.1.x-dev"
+    }
+  },
+  "require": {
+    "php": "^5.4 || >=7.0 <7.3"
+  }
 }
