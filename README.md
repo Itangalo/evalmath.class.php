@@ -1,112 +1,89 @@
-yii2-expression
+Math expression
 ==================
 
-Вычисление математических и логических выражений
+Safely evaluate math and boolean expressions.
 
-# Установка
+This class can be used to safely evaluate mathematical expressions.
+The class can take an expression in a text string and evaluate it by replacing values of variables and calculating the results of mathematical functions and operations.
+It supports implicit multiplication, multivariable functions and nested functions.
+It can be used to evaluate expressions from untrusted sources. It provides robust error checking and only evaluates a limited set of functions.
+It could be used to generate graphs from expressions of formulae.
+
+# Install
 
 ```
-    $ php composer.phar require optimistex/yii2-expression
+    $ composer require optimistex/math-expression
 ```
 
-# Возможности
-
-Данное расширение предоставляет класс **Expression** для обработки математических выражений.
-
-Класс может принимать математическое выражение в текстовой строке и обработать его путем замены значений переменных и вычисление результатов математических функций и операций.
-
-Он поддерживает неявное умножение, многомерные функции и вложенные функции.
-
-Он может быть использован для проверки выражений из ненадежных источников. Это обеспечивает надежную проверку ошибок и вычисление только ограниченного набора функций.
-
-Он может быть использован для создания графиков из выражений в виде формул.
-
-# Примеры использования
-
-## Синтаксис
+# SYNOPSIS
 
 ```php
     <?php
-      $e = new \optimistex\expression\ExpressionCore();
+      $e = new \optimistex\expression\MathExpression();
       
-      // базовые вычисления
+      // basic evaluation:
       $result = $e->evaluate('2+2');
-      
-      // поддержка: порядок операций; круглые скобки; отрицание; встроенные функции
+      // supports: order of operation; parentheses; negation; built-in functions
       $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
-      
-      // поддержка логических выражений
+      // support of booleans
       $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
-      
-      // поддержка сравнения строки с регулярным выражением (регулярные выражения должныбыть такими же как в PHP)
-      $result = $e->evaluate('"foo,bar" =~ "/^([fo]+),(bar)$/"');
-      
-      // Предыдущий вызов создаст переменные $0 c общим результатом сравнения и $1, $2 с результатами групп
+      // support for strings and match (regexes can be like in php or like in javascript)
+      $result = $e->evaluate('"Foo,Bar" =~ /^([fo]+),(bar)$/i');
+      // previous call will create $0 for whole match match and $1,$2 for groups
       $result = $e->evaluate('$2');
-      
-      // Создание собственных переменных
+      // create your own variables
       $e->evaluate('a = e^(ln(pi))');
-      // или функций
+      // or functions
       $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
-      // и их использование
+      // and then use them
       $result = $e->evaluate('3*f(42,a)');
-      
-      // Создание внешних функций
+      // create external functions
       $e->functions['foo'] = function() {
         return "foo";
       };
-      // и их использование
+      // and use it
       $result = $e->evaluate('foo()');
     ?>
 ```
 
-## Описание
+# DESCRIPTION
+    Use the Expression class when you want to evaluate mathematical or boolean
+    expressions  from untrusted sources.  You can define your own variables and
+    functions, which are stored in the object.  Try it, it's fun!
 
-Используйте класс Expression когда вам нужно вычислять математические или логические выражения из ненадежных источников. 
-Вы можете определить свои собственные переменные и функции, которые хранятся в объекте. Попробуйте, это весело!
+    Based on http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
 
-## Методы
+# METHODS
+    $e->evalute($expr)
+        Evaluates the expression and returns the result.  If an error occurs,
+        prints a warning and returns false.  If $expr is a function assignment,
+        returns true on success.
 
-$m->evalute($expr)
-    
-    Вычисляет выражение и возвращает результат. В случае возникновения ошибки,
-    выдает предупреждение и возвращает ложь. 
-    Если $ехрг является функцией, то возвращает истину в случае успеха.
-    
-$m->e($expr)
-    
-    Это синоним для $m->evaluate().
-    
-$m->vars()
-    
-    Возвращает ассоциированный массив всех пользовательских переменных и их значений.
-        
-$m->funcs()
-    
-    Возвращает массив всех пользовательских функций.
+    $e->e($expr)
+        A synonym for $e->evaluate().
 
-## Параметры
+    $e->vars()
+        Returns an associative array of all user-defined variables and values.
 
-$m->suppress_errors
+    $e->funcs()
+        Returns an array of all user-defined functions.
 
-    Подавление ошибок.
-    Установите true для отключения предупреждений при вычислении выражений.
+# PARAMETERS
+    $e->suppress_errors
+        Set to true to turn off warnings when evaluating expressions
 
-$m->last_error
+    $e->last_error
+        If the last evaluation failed, contains a string describing the error.
+        (Useful when suppress_errors is on).
 
-    Если последнее вычисление не удалась, то содержит строку с описанием ошибки. 
-    (Полезно, когда включено подавление ошибок $m->suppress_errors).
-
-
-# Информация об авторах
-
-    **Copyright 2005, Miles Kaufmann**
-    **Copyright 2016, Jakub Jankiewicz**
+# AUTHORS INFORMATION
+    Copyright 2005, Miles Kaufmann.
+    Copyright 2016, Jakub Jankiewicz
+    Copyright 2016, Konstantin Polyntsov
 
 Version 2.0
 
-# Лицензия
-
+# LICENSE
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions are
     met:
