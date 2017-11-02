@@ -12,7 +12,7 @@ namespace optimistex\expression;
  * Class Expression adapted for Yii2
  * @package optimistex\expression
  */
-class Expression extends \Expression
+class MathExpression extends \Expression
 {
 
 }
