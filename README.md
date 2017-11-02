@@ -3,12 +3,6 @@ Math expression
 
 Safely evaluate math and boolean expressions.
 
-This class can be used to safely evaluate mathematical expressions.
-The class can take an expression in a text string and evaluate it by replacing values of variables and calculating the results of mathematical functions and operations.
-It supports implicit multiplication, multivariable functions and nested functions.
-It can be used to evaluate expressions from untrusted sources. It provides robust error checking and only evaluates a limited set of functions.
-It could be used to generate graphs from expressions of formulae.
-
 # Install
 
 ```
@@ -47,6 +41,13 @@ It could be used to generate graphs from expressions of formulae.
 ```
 
 # DESCRIPTION
+
+    This class can be used to safely evaluate mathematical expressions.
+    The class can take an expression in a text string and evaluate it by replacing values of variables and calculating the results of mathematical functions and operations.
+    It supports implicit multiplication, multivariable functions and nested functions.
+    It can be used to evaluate expressions from untrusted sources. It provides robust error checking and only evaluates a limited set of functions.
+    It could be used to generate graphs from expressions of formulae.
+
     Use the Expression class when you want to evaluate mathematical or boolean
     expressions  from untrusted sources.  You can define your own variables and
     functions, which are stored in the object.  Try it, it's fun!
