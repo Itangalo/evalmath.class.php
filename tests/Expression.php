@@ -20,6 +20,14 @@ class ExpressionTest extends TestCase
         echo json_encode($expr->evaluate($expression)) ? "true" : "false";
     }
     */
+
+    public function testEmptyFormula()
+    {
+        $expr = new Expression();
+        $expr->suppress_errors = true;
+        $this->assertEquals($expr->evaluate(''), false);
+    }
+
     // -------------------------------------------------------------------------
     public function testIntegers()
     {
@@ -384,5 +392,4 @@ class ExpressionTest extends TestCase
             $this->assertEquals($e->evaluate($formula), $result);
         }
     }
-
 }

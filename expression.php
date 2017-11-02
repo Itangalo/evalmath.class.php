@@ -136,7 +136,7 @@ class Expression
     {
         $this->last_error = null;
         $expr = trim($expr);
-        if ($expr[strlen($expr) - 1] === ';') {
+        if ($expr && $expr[strlen($expr) - 1] === ';') {
             $expr = substr($expr, 0, -1); // strip semicolons at the end
         }
         //===============
@@ -199,7 +199,11 @@ class Expression
 
     //===================== HERE BE INTERNAL METHODS ====================\\
 
-    // Convert infix to postfix notation
+    /**
+     * Convert infix to postfix notation
+     * @param string $expr
+     * @return array|bool
+     */
     public function nfx($expr)
     {
         $index = 0;
@@ -402,14 +406,19 @@ class Expression
         return $output;
     }
 
-    // evaluate postfix notation
-    public function pfx(array $tokens, array $vars = array())
+    /**
+     * evaluate postfix notation
+     * @param array|bool $tokens
+     * @param array $vars
+     * @return bool|mixed|null
+     */
+    public function pfx($tokens, array $vars = array())
     {
-        if (empty($tokens)) {
+        if ($tokens === false) {
             return false;
         }
         $stack = new ExpressionStack();
-        foreach ($tokens as $token) { // nice and easy
+        foreach ((array)$tokens as $token) { // nice and easy
             // if the token is a binary operator, pop two values off the stack, do the operation, and push the result back on
             if (in_array($token, array('+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||', '!=', '=~', '%'), true)) {
                 $op2 = $stack->pop();
