@@ -84,6 +84,10 @@ Safely evaluate math and boolean expressions.
 
 Version 2.0
 
+# Contribute
+
+For running tests just run ``$ make``
+
 # LICENSE
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions are
