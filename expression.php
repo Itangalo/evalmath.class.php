@@ -135,7 +135,7 @@ class Expression
     public function evaluate($expr)
     {
         $this->last_error = null;
-        $expr = trim($expr);
+        $expr = preg_replace("/\r|\n/", '', trim($expr));
         if ($expr && $expr[strlen($expr) - 1] === ';') {
             $expr = substr($expr, 0, -1); // strip semicolons at the end
         }

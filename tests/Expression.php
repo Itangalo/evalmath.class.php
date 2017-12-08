@@ -13,6 +13,7 @@ class ExpressionTest extends TestCase
             $this->assertEquals($result, eval('return ' . $iValue . ';'));
         }
     }
+
     /*
     public function testTest() {
         $expression = '2+2*2-2/2 >= 2*2+-2/2*2';
@@ -391,5 +392,18 @@ class ExpressionTest extends TestCase
         foreach ($data as $formula => $result) {
             $this->assertEquals($e->evaluate($formula), $result);
         }
+    }
+
+    public function testRowBreaking()
+    {
+        $expr = new Expression();
+        $this->assertEquals(6, $expr->evaluate('2 + 2 * 2'));
+        $this->assertEquals(6, $expr->evaluate(
+            '2 
+                  +
+                  2
+                  *
+                  2'
+        ));
     }
 }
