@@ -105,35 +105,73 @@ LICENSE
 
 class Expression
 {
-
     public $suppress_errors = false;
     public $last_error;
 
-    public $v = array('e' => 2.71, 'pi' => 3.14); // variables (and constants)
-    public $f = array(); // user-defined functions
-    public $vb = array('e', 'pi'); // constants
-    public $fb = array(  // built-in functions
+    /**
+     * Function defined outside of Expression as closures
+     *
+     * Example:
+     * ```php
+     *      $expr = new Expression();
+     *      $expr->functions = [
+     *          'foo' => function ($a, $b) {
+     *              return $a + $b;
+     *          }
+     *      ];
+     *      $expr->e('2 * foo(3, 4)'); //return: 14
+     * ```
+     *
+     * @var array
+     */
+    public $functions = [];
+
+    /**
+     * Variables (and constants)
+     * @var array
+     */
+    public $v = ['e' => 2.71, 'pi' => 3.14];
+
+    private $f = []; // user-defined functions
+    private $vb = ['e', 'pi']; // constants
+    private $fb = [  // built-in functions
         'sin', 'sinh', 'arcsin', 'asin', 'arcsinh', 'asinh',
         'cos', 'cosh', 'arccos', 'acos', 'arccosh', 'acosh',
         'tan', 'tanh', 'arctan', 'atan', 'arctanh', 'atanh',
-        'sqrt', 'abs', 'ln', 'log');
+        'sqrt', 'abs', 'ln', 'log'];
 
-    public $functions = array(); // function defined outside of Expression as closures
+    private $_functions = [];
 
     public function __construct()
     {
         // make the variables a little more accurate
         $this->v['pi'] = M_PI;
         $this->v['e'] = exp(1);
+        $this->_functions = [
+            'if' => function ($condition, $valueIfTrue, $valueIfFalse) {
+                return $condition ? $valueIfTrue : $valueIfFalse;
+            }
+        ];
     }
 
+    /**
+     * @param string $expr
+     * @return bool|mixed|null
+     * @throws ReflectionException
+     */
     public function e($expr)
     {
         return $this->evaluate($expr);
     }
 
+    /**
+     * @param string $expr
+     * @return bool|mixed|null
+     * @throws ReflectionException
+     */
     public function evaluate($expr)
     {
+        $this->_functions = array_merge($this->_functions, $this->functions);
         $this->last_error = null;
         $expr = preg_replace("/\r|\n/", '', trim($expr));
         if ($expr && $expr[strlen($expr) - 1] === ';') {
@@ -157,7 +195,7 @@ class Expression
                 return $this->trigger("cannot redefine built-in function '$matches[1]()'");
             }
 
-            $args = array();
+            $args = [];
             if ($matches[2] !== '') {
                 $args = explode(',', preg_replace("/\s+/", '', $matches[2])); // get the arguments
             }
@@ -174,13 +212,16 @@ class Expression
                     }
                 }
             }
-            $this->f[$fnn] = array('args' => $args, 'func' => $stack);
+            $this->f[$fnn] = ['args' => $args, 'func' => $stack];
             return true;
             //===============
         }
         return $this->pfx($this->nfx($expr)); // straight up evaluation, woo
     }
 
+    /**
+     * @return array
+     */
     public function vars()
     {
         $output = $this->v;
@@ -188,9 +229,12 @@ class Expression
         return $output;
     }
 
+    /**
+     * @return array
+     */
     public function funcs()
     {
-        $output = array();
+        $output = [];
         foreach ($this->f as $fnn => $dat) {
             $output[] = $fnn . '(' . implode(',', $dat['args']) . ')';
         }
@@ -203,20 +247,21 @@ class Expression
      * Convert infix to postfix notation
      * @param string $expr
      * @return array|bool
+     * @throws ReflectionException
      */
-    public function nfx($expr)
+    private function nfx($expr)
     {
         $index = 0;
         $stack = new ExpressionStack;
-        $output = array(); // postfix form of expression, to be passed to pfx()
+        $output = []; // postfix form of expression, to be passed to pfx()
         $expr = trim($expr);
 
-        $ops = array('+', '-', '*', '/', '^', '_', '%', '>', '<', '>=', '<=', '==', '!=', '=~', '&&', '||', '!');
-        $ops_r = array('+' => 0, '-' => 0, '*' => 0, '/' => 0, '%' => 0, '^' => 1, '>' => 0,
+        $ops = ['+', '-', '*', '/', '^', '_', '%', '>', '<', '>=', '<=', '==', '!=', '=~', '&&', '||', '!'];
+        $ops_r = ['+' => 0, '-' => 0, '*' => 0, '/' => 0, '%' => 0, '^' => 1, '>' => 0,
             '<' => 0, '>=' => 0, '<=' => 0, '==' => 0, '!=' => 0, '=~' => 0,
-            '&&' => 0, '||' => 0, '!' => 0); // right-associative operator?
-        $ops_p = array('+' => 3, '-' => 3, '*' => 4, '/' => 4, '_' => 4, '%' => 4, '^' => 5, '>' => 2, '<' => 2,
-            '>=' => 2, '<=' => 2, '==' => 2, '!=' => 2, '=~' => 2, '&&' => 1, '||' => 1, '!' => 5); // operator precedence
+            '&&' => 0, '||' => 0, '!' => 0]; // right-associative operator?
+        $ops_p = ['+' => 3, '-' => 3, '*' => 4, '/' => 4, '_' => 4, '%' => 4, '^' => 5, '>' => 2, '<' => 2,
+            '>=' => 2, '<=' => 2, '==' => 2, '!=' => 2, '=~' => 2, '&&' => 1, '||' => 1, '!' => 5]; // operator precedence
 
         $expecting_op = false; // we use this in syntax-checking the expression
         // and determining when a - is a negation
@@ -308,8 +353,8 @@ class Expression
                         if ($arg_count !== count($this->f[$fnn]['args'])) {
                             return $this->trigger("wrong number of arguments ($arg_count given, " . count($this->f[$fnn]['args']) . ' expected) ' . json_encode($this->f[$fnn]['args']));
                         }
-                    } elseif (array_key_exists($fnn, $this->functions)) {
-                        $func_reflection = new ReflectionFunction($this->functions[$fnn]);
+                    } elseif (array_key_exists($fnn, $this->_functions)) {
+                        $func_reflection = new ReflectionFunction($this->_functions[$fnn]);
                         $count = $func_reflection->getNumberOfParameters();
                         if ($arg_count !== $count) {
                             return $this->trigger("wrong number of arguments ($arg_count given, " . $count . ' expected)');
@@ -355,7 +400,7 @@ class Expression
                 } elseif (preg_match("/^([a-z]\w*)\($/", $val, $matches)) { // may be func, or variable w/ implicit multiplication against parentheses...
                     if (in_array($matches[1], $this->fb, true) ||
                         array_key_exists($matches[1], $this->f) ||
-                        array_key_exists($matches[1], $this->functions)
+                        array_key_exists($matches[1], $this->_functions)
                     ) { // it's a func
                         if ($begin_argument && !$stack->incrementArgument()) {
                             $this->trigger("unexpected '('");
@@ -411,8 +456,9 @@ class Expression
      * @param array|bool $tokens
      * @param array $vars
      * @return bool|mixed|null
+     * @throws ReflectionException
      */
-    public function pfx($tokens, array $vars = array())
+    private function pfx($tokens, array $vars = [])
     {
         if ($tokens === false) {
             return false;
@@ -420,7 +466,7 @@ class Expression
         $stack = new ExpressionStack();
         foreach ((array)$tokens as $token) { // nice and easy
             // if the token is a binary operator, pop two values off the stack, do the operation, and push the result back on
-            if (in_array($token, array('+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||', '!=', '=~', '%'), true)) {
+            if (in_array($token, ['+', '-', '*', '/', '^', '<', '>', '<=', '>=', '==', '&&', '||', '!=', '=~', '%'], true)) {
                 $op2 = $stack->pop();
                 $op1 = $stack->pop();
                 switch ($token) {
@@ -530,8 +576,8 @@ class Expression
                         $args[$this->f[$fnn]['args'][$i]] = $stack->pop();
                     }
                     $stack->push($this->pfx($this->f[$fnn]['func'], $args)); // yay... recursion!!!!
-                } else if (array_key_exists($fnn, $this->functions)) {
-                    $reflection = new ReflectionFunction($this->functions[$fnn]);
+                } else if (array_key_exists($fnn, $this->_functions)) {
+                    $reflection = new ReflectionFunction($this->_functions[$fnn]);
                     $count = $reflection->getNumberOfParameters();
                     $args = [];
                     for ($i = $count - 1; $i >= 0; $i--) {
@@ -565,8 +611,8 @@ class Expression
                     $stack->push(0 + $token);
                 } else if (preg_match("/^['\\\"](.*)['\\\"]$/", $token)) {
                     $stack->push(json_decode(preg_replace_callback("/^['\\\"](.*)['\\\"]$/", function ($matches) {
-                        $m = array("/\\\\'/", '/(?<!\\\\)"/');
-                        $r = array("'", '\\"');
+                        $m = ["/\\\\'/", '/(?<!\\\\)"/'];
+                        $r = ["'", '\\"'];
                         return '"' . preg_replace($m, $r, $matches[1]) . '"';
                     }, $token)));
                 } elseif (array_key_exists($token, $this->v)) {
@@ -590,7 +636,7 @@ class Expression
      * @param string $msg
      * @return bool
      */
-    public function trigger($msg)
+    private function trigger($msg)
     {
         $this->last_error = $msg;
         if (!$this->suppress_errors) {
@@ -605,7 +651,7 @@ class Expression
  */
 class ExpressionStack
 {
-    public $stack = array();
+    public $stack = [];
     public $count = 0;
 
     public function push($val)

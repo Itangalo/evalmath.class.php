@@ -1,6 +1,6 @@
 {
   "name": "optimistex/math-expression",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "type": "library",
   "description": "Taken from http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann",
   "keywords": [

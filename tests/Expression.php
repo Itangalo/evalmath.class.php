@@ -371,9 +371,13 @@ class ExpressionTest extends TestCase
             'max' => function ($v1, $v2) {
                 return max($v1, $v2);
             },
+            'foo' => function ($a, $b) {
+                return $a + $b;
+            }
         ];
 
         $data = [
+            '2*foo(3,4)' => 14,
             'max(2,(2+2)*2)' => 8,
             'max((2),(0))' => 2,
             'max((2+2)*2,(3+2)*2)' => 10,
@@ -405,5 +409,18 @@ class ExpressionTest extends TestCase
                   *
                   2'
         ));
+    }
+
+    public function testFunctionIf()
+    {
+        $expr = new Expression();
+        $expr->functions = [
+            'fake' => function () {
+                return 'fake';
+            }
+        ];
+        $this->assertEquals('fake', $expr->evaluate('fake()'));
+        $this->assertEquals(10, $expr->evaluate('if(2 > 3, 5, 10)'));
+        $this->assertEquals(5, $expr->evaluate('if(2 < 3, 5, 10)'));
     }
 }
