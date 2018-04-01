@@ -5,6 +5,10 @@ use PHPUnit\Framework\TestCase;
 
 class ExpressionTest extends TestCase
 {
+    /**
+     * @param array $array
+     * @throws ReflectionException
+     */
     public function arrayTest(array $array)
     {
         $expr = new Expression();
@@ -22,6 +26,9 @@ class ExpressionTest extends TestCase
     }
     */
 
+    /**
+     * @throws ReflectionException
+     */
     public function testEmptyFormula()
     {
         $expr = new Expression();
@@ -31,6 +38,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testIntegers()
     {
         $ints = array('100', '3124123', (string)PHP_INT_MAX, '-1000');
@@ -43,6 +54,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testFloats()
     {
         $ints = array('10.10', '0.01', '.1', '1.', '-100.100', '1.10e2', '-0.10e10');
@@ -54,7 +69,11 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    public function testAritmeticOperators()
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testArithmeticOperators()
     {
         $expressions = array('20+20', '-20+20', '-0.1+0.1', '.1+.1', '1.+1.',
             '0.1+(-0.1)', '20*20', '-20*20', '20*(-20)', '1.*1.',
@@ -71,6 +90,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testSemicolon()
     {
         $expr = new Expression();
@@ -79,6 +102,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testBooleanComparators()
     {
         $expressions = array('10 == 10', '10 == 20', '0.1 == 0.1', '0.1 == 0.2',
@@ -93,6 +120,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testBooleanOperators()
     {
         $expressions = array('10 == 10 && 10 == 10', '10 != 10 && 10 != 10',
@@ -113,6 +144,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testPriorityOperands()
     {
         $data = [
@@ -129,6 +164,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testKeywords()
     {
         $expressions = array('1 == true', 'true == true', 'false == false',
@@ -149,6 +188,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testNegation()
     {
         $expressions = array('!(10 == 10)', '!1', '!0');
@@ -156,6 +199,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testStrings()
     {
         $expressions = array('"foo" == "foo"', '"foo\\"bar" == "foo\\"bar"',
@@ -176,7 +223,11 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    public function testMatchers()
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testMatches()
     {
         $expressions = array('"Foobar" =~ /([fo]+)/i' => 'Foo',
             '"foobar" =~ /([0-9]+)/' => null,
@@ -196,6 +247,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testVariableAssignment()
     {
         $expressions = array('foo = "bar"' => array('var' => 'foo', 'value' => 'bar'),
@@ -213,6 +268,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testVariables()
     {
         $expr = new Expression();
@@ -227,6 +286,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testJSON()
     {
         $expressions = array(
@@ -267,6 +330,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testCustomFunctions()
     {
         $functions = [
@@ -298,6 +365,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testCustomClosures()
     {
         $expr = new Expression();
@@ -311,6 +382,10 @@ class ExpressionTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @throws ReflectionException
+     */
     public function testBug_1()
     {
         $expr = new Expression();
@@ -324,8 +399,9 @@ class ExpressionTest extends TestCase
         $this->assertEquals($expr->evaluate($formula), 364);
     }
 
-    // */
-
+    /**
+     * @throws ReflectionException
+     */
     public function testFormulaWithBrackets()
     {
         $e = new Expression();
@@ -361,6 +437,9 @@ class ExpressionTest extends TestCase
         }
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testFunctionOrderParameters()
     {
         $e = new Expression();
@@ -399,6 +478,9 @@ class ExpressionTest extends TestCase
         }
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testRowBreaking()
     {
         $expr = new Expression();
@@ -412,6 +494,9 @@ class ExpressionTest extends TestCase
         ));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testFunctionIf()
     {
         $expr = new Expression();
