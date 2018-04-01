@@ -171,6 +171,9 @@ class Expression
      */
     public function evaluate($expr)
     {
+        if (empty($expr)) {
+            return false;
+        }
         $this->_functions = array_merge($this->_functions, $this->functions);
         $this->last_error = null;
         $expr = preg_replace("/\r|\n/", '', trim($expr));

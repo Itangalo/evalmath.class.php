@@ -27,6 +27,7 @@ class ExpressionTest extends TestCase
         $expr = new Expression();
         $expr->suppress_errors = true;
         $this->assertEquals($expr->evaluate(''), false);
+        $this->assertEmpty($expr->last_error);
     }
 
     // -------------------------------------------------------------------------
