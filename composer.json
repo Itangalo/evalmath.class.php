@@ -1,6 +1,6 @@
 {
   "name": "optimistex/math-expression",
-  "version": "2.1.4",
+  "version": "2.2.0",
   "type": "library",
   "description": "Taken from http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann",
   "keywords": [
@@ -37,6 +37,6 @@
     }
   },
   "require": {
-    "php": "^5.4 || >=7.0 <7.3"
+    "php": "^5.4 || >=7.0 <8.1"
   }
 }
